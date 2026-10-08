@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../../shared/components/Modal';
@@ -38,6 +39,7 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<BudgetFormInput, unknown, BudgetFormOutput>({
     resolver: zodResolver(formSchema),
@@ -46,6 +48,15 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
       limiteValor: budget?.limiteValor ?? 0,
     },
   });
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        categoriaId: budget?.categoriaId ?? '',
+        limiteValor: budget?.limiteValor ?? 0,
+      });
+    }
+  }, [open, budget, reset]);
 
   if (!open) return null;
 
