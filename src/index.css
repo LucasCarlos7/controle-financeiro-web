@@ -5,8 +5,10 @@
 /*
  * Design tokens. Componentes usam só os nomes semânticos (bg-surface, text-text-muted, border-border...).
  * Os valores do tema escuro são trocados em .dark, então nenhum componente precisa de `dark:`.
+ * A paleta padrão do Tailwind é removida: uma cor crua (slate-500, indigo-600) não gera CSS.
  */
 @theme {
+  --color-*: initial;
   --color-white: oklch(1 0 0);
   --color-black: oklch(0 0 0);
 
@@ -105,8 +107,8 @@
   --color-text-muted: oklch(0.75 0.015 264);
   --color-text-subtle: oklch(0.64 0.015 264);
 
-  --color-primary: oklch(0.54 0.19 272);
-  --color-primary-hover: oklch(0.6 0.18 272);
+  --color-primary: oklch(0.5 0.19 272);
+  --color-primary-hover: oklch(0.45 0.19 272);
   --color-primary-fg: oklch(1 0 0);
   --color-primary-text: oklch(0.78 0.12 272);
   --color-primary-soft: oklch(0.3 0.06 272);
