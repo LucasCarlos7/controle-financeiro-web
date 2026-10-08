@@ -29,7 +29,13 @@ export type IconName =
   | 'sliders'
   | 'grid'
   | 'chevron-down'
-  | 'clock';
+  | 'clock'
+  | 'arrow-left'
+  | 'eye'
+  | 'eye-off'
+  | 'calendar'
+  | 'text'
+  | 'bank';
 
 const SHAPES: Record<IconName, React.ReactNode> = {
   home: (
@@ -202,6 +208,49 @@ const SHAPES: Record<IconName, React.ReactNode> = {
     </>
   ),
   'chevron-down': <polyline points="6,9 12,15 18,9" />,
+  'arrow-left': (
+    <>
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="11,6 5,12 11,18" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  'eye-off': (
+    <>
+      <path d="M9.9 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.6 3.4M6.5 7.2A16 16 0 0 0 2.5 12S6 18.5 12 18.5c1.7 0 3.2-.5 4.5-1.2" />
+      <line x1="3.5" y1="3.5" x2="20.5" y2="20.5" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+      <line x1="4" y1="10" x2="20" y2="10" />
+      <line x1="8.5" y1="3.5" x2="8.5" y2="7" />
+      <line x1="15.5" y1="3.5" x2="15.5" y2="7" />
+    </>
+  ),
+  text: (
+    <>
+      <line x1="5" y1="8" x2="19" y2="8" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <line x1="5" y1="16" x2="13" y2="16" />
+    </>
+  ),
+  bank: (
+    <>
+      <polygon points="12,3.5 20.5,8 3.5,8" />
+      <line x1="6" y1="10.5" x2="6" y2="17" />
+      <line x1="10" y1="10.5" x2="10" y2="17" />
+      <line x1="14" y1="10.5" x2="14" y2="17" />
+      <line x1="18" y1="10.5" x2="18" y2="17" />
+      <line x1="3.5" y1="20" x2="20.5" y2="20" />
+    </>
+  ),
   clock: (
     <>
       <circle cx="12" cy="12" r="8.5" />

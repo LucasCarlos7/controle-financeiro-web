@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ConfirmContext, ToastContext } from '../components/ui/feedbackContext';
+import { ConfirmContext, PrivacyContext, ToastContext } from '../components/ui/feedbackContext';
 
 /** Diálogo de confirmação: `if (await confirm({ title: 'Excluir?' })) ...` */
 export function useConfirm() {
@@ -13,4 +13,9 @@ export function useToast() {
   const context = useContext(ToastContext);
   if (!context) throw new Error('useToast deve ser usado dentro de ToastProvider');
   return context;
+}
+
+/** Estado do modo "ocultar valores". */
+export function usePrivacy() {
+  return useContext(PrivacyContext);
 }

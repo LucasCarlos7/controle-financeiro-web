@@ -15,6 +15,8 @@ interface ModalProps {
   /** Rodapé fixo (ações). Fica visível mesmo com o conteúdo rolando. */
   footer?: ReactNode;
   size?: Size;
+  /** `sheet`: painel em altura total com seta de voltar (formulários). */
+  variant?: 'dialog' | 'sheet';
 }
 
 const SIZE_CLASSES: Record<Size, string> = {
@@ -47,7 +49,16 @@ function unlockScroll() {
  * Diálogo modal: foco preso dentro dele, Esc fecha, a página de fundo não rola e o foco volta para
  * quem abriu. No mobile vira uma folha que sobe da parte de baixo.
  */
-export function Modal({ open, title, description, onClose, children, footer, size = 'sm' }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  description,
+  onClose,
+  children,
+  footer,
+  size = 'sm',
+  variant = 'dialog',
+}: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -96,17 +107,50 @@ export function Modal({ open, title, description, onClose, children, footer, siz
     }
   }
 
+  const panelProps = {
+    ref: panelRef,
+    role: 'dialog',
+    'aria-modal': true,
+    'aria-labelledby': titleId,
+    'aria-describedby': description ? descriptionId : undefined,
+    tabIndex: -1,
+    onKeyDown: handleKeyDown,
+  } as const;
+
+  if (variant === 'sheet') {
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex justify-center sm:p-3">
+        <div aria-hidden="true" className="absolute inset-0 animate-fade-in bg-overlay" onClick={onClose} />
+        <div
+          {...panelProps}
+          className="relative flex h-full w-full animate-slide-up flex-col overflow-hidden bg-bg shadow-raised focus-visible:outline-none sm:max-w-[28rem] sm:rounded-modal sm:border sm:border-border"
+        >
+          <div className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-4">
+            <IconButton icon="arrow-left" label="Voltar" onClick={onClose} />
+            <h2 id={titleId} className="truncate text-center text-lg font-semibold text-text">
+              {title}
+            </h2>
+          </div>
+          {description && (
+            <p id={descriptionId} className="px-5 text-center text-sm text-text-muted">
+              {description}
+            </p>
+          )}
+          <div className="flex-1 overflow-y-auto px-4 pb-6 pt-3 sm:px-5">{children}</div>
+          {footer && (
+            <div className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pb-5">{footer}</div>
+          )}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
       <div aria-hidden="true" className="absolute inset-0 animate-fade-in bg-overlay" onClick={onClose} />
       <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
-        tabIndex={-1}
-        onKeyDown={handleKeyDown}
+        {...panelProps}
         className={cn(
           'relative flex max-h-[92svh] w-full animate-slide-up flex-col overflow-hidden rounded-t-modal border border-border bg-surface-raised shadow-raised focus-visible:outline-none sm:max-h-[85svh] sm:animate-scale-in sm:rounded-modal',
           SIZE_CLASSES[size],

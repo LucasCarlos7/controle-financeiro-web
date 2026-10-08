@@ -22,3 +22,10 @@ export interface ToastOptions {
 export type ToastFn = (options: ToastOptions | string) => void;
 
 export const ToastContext = createContext<ToastFn | undefined>(undefined);
+
+export interface PrivacyState {
+  hidden: boolean;
+  toggle: () => void;
+}
+
+export const PrivacyContext = createContext<PrivacyState>({ hidden: false, toggle: () => {} });

@@ -3,9 +3,9 @@ import { SegmentedControl } from '../../../../shared/components/ui/SegmentedCont
 import type { TipoTransacao } from '../../types';
 import { useTransactionForm } from './useTransactionForm';
 
-const TIPOS: { value: TipoTransacao; label: string }[] = [
-  { value: 'Despesa', label: 'Despesa' },
-  { value: 'Receita', label: 'Receita' },
+const TIPOS: { value: TipoTransacao; label: string; tone?: 'danger' | 'success' }[] = [
+  { value: 'Despesa', label: 'Despesa', tone: 'danger' },
+  { value: 'Receita', label: 'Receita', tone: 'success' },
   { value: 'Transferencia', label: 'Transferência' },
 ];
 
@@ -17,7 +17,7 @@ export function TransactionTypeField() {
       control={control}
       name="tipo"
       render={({ field }) => (
-        <SegmentedControl label="Tipo" options={TIPOS} value={field.value} onChange={field.onChange} />
+        <SegmentedControl label="Tipo" options={TIPOS} value={field.value} onChange={field.onChange} className="mb-5" />
       )}
     />
   );

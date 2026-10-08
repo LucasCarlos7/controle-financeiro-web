@@ -1,8 +1,17 @@
 import { useRef, type KeyboardEvent } from 'react';
 import { cn } from '../../utils/cn';
 
+type Tone = 'danger' | 'success';
+
+const SELECTED_TONES: Record<Tone | 'default', string> = {
+  default: 'bg-primary-soft font-semibold text-primary-text shadow-card ring-1 ring-primary-text',
+  danger: 'bg-danger-fill font-semibold text-white shadow-card',
+  success: 'bg-primary font-semibold text-primary-fg shadow-card',
+};
+
 interface SegmentedControlProps<T extends string> {
-  options: { value: T; label: string }[];
+  /** `tone` pinta a opção selecionada (ex.: despesa vermelha, receita verde). */
+  options: { value: T; label: string; tone?: Tone }[];
   value: T;
   onChange: (value: T) => void;
   label: string;
@@ -54,9 +63,7 @@ export function SegmentedControl<T extends string>({
               onClick={() => onChange(option.value)}
               className={cn(
                 'h-9 truncate rounded-[calc(var(--radius-control)-2px)] px-2 text-sm font-medium sm:px-3 sm:text-base transition-colors duration-(--duration-fast)',
-                selected
-                  ? 'bg-primary-soft font-semibold text-primary-text shadow-card ring-1 ring-primary-text'
-                  : 'text-text-muted hover:bg-surface-hover hover:text-text',
+                selected ? SELECTED_TONES[option.tone ?? 'default'] : 'text-text-muted hover:bg-surface-hover hover:text-text',
               )}
             >
               {option.label}
