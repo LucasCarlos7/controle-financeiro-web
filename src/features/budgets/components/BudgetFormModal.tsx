@@ -8,7 +8,8 @@ import type { Orcamento } from '../types';
 import { useToast } from '../../../shared/hooks/useFeedback';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { AmountInput, FormSection } from '../../../shared/components/ui/FormRows';
+import { FormSection } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { FormError } from '../../../shared/components/ui/FormError';
 import { formatMonthYear } from '../../../shared/utils/format';
@@ -41,7 +42,6 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
   const categoriaNome = categories?.find((categoria) => categoria.id === budget?.categoriaId)?.nome;
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
@@ -101,7 +101,13 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
       }
     >
       <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
-        <AmountInput id="limiteValor" label="Limite do mês" error={errors.limiteValor?.message} {...register('limiteValor')} />
+        <AmountInputField
+          control={control}
+          name="limiteValor"
+          id="limiteValor"
+          label="Limite do mês"
+          error={errors.limiteValor?.message}
+        />
         {!isEditing && (
           <FormSection label="Classificação" hint="Só categorias de despesa.">
             <SelectRowField

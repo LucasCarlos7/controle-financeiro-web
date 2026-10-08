@@ -1,6 +1,7 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 import { Icon, type IconName } from '../icons';
+import { MoneyInput } from './MoneyInput';
 import { OptionPicker, type PickerOption } from './OptionPicker';
 
 /** Bloco de formulário: rótulo em maiúsculas e um card com linhas separadas por divisórias. */
@@ -195,9 +196,17 @@ export const ToggleRow = forwardRef<HTMLInputElement, ToggleRowProps>(
 );
 ToggleRow.displayName = 'ToggleRow';
 
-interface AmountInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  tone?: 'expense' | 'income' | 'neutral';
+interface MoneyFieldProps {
+  value: unknown;
+  onChange: (value: number) => void;
+  onBlur?: () => void;
+  name?: string;
+  id?: string;
   error?: string;
+}
+
+interface AmountInputProps extends MoneyFieldProps {
+  tone?: 'expense' | 'income' | 'neutral';
   label?: string;
 }
 
@@ -207,9 +216,9 @@ const AMOUNT_TONES = {
   neutral: { color: 'text-text', sign: '' },
 } as const;
 
-/** Valor em destaque no topo do formulário: "− R$ 0,00" grande, colorido pelo tipo. */
+/** Valor em destaque no topo do formulário: "− R$ 0,00" grande, preenchido da direita para a esquerda. */
 export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
-  ({ tone = 'neutral', error, label = 'Valor', id, className, ...props }, ref) => {
+  ({ tone = 'neutral', error, label = 'Valor', id, ...field }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     const { color, sign } = AMOUNT_TONES[tone];
@@ -224,20 +233,13 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
             {sign}
             {sign && ' '}R$
           </span>
-          <input
+          <MoneyInput
             id={inputId}
             ref={ref}
-            type="number"
-            step="0.01"
-            inputMode="decimal"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? `${inputId}-error` : undefined}
-            className={cn(
-              'w-full min-w-0 bg-transparent text-4xl font-bold tabular-nums tracking-tight placeholder:text-text-subtle focus-visible:outline-none',
-              className,
-            )}
-            onFocus={(event) => event.target.select()}
-            {...props}
+            className="w-full min-w-0 bg-transparent text-4xl font-bold tabular-nums tracking-tight caret-current focus-visible:outline-none"
+            {...field}
           />
           <Icon name="pencil" aria-hidden="true" className="h-5 w-5 shrink-0 self-center text-primary-text" />
         </div>
@@ -252,3 +254,46 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
   },
 );
 AmountInput.displayName = 'AmountInput';
+
+interface MoneyRowProps extends MoneyFieldProps {
+  icon: IconName;
+  label: ReactNode;
+  required?: boolean;
+  allowNegative?: boolean;
+}
+
+/** Linha com valor em reais alinhado à direita, preenchido da direita para a esquerda. */
+export const MoneyRow = forwardRef<HTMLInputElement, MoneyRowProps>(
+  ({ icon, label, required, error, id, allowNegative, ...field }, ref) => {
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
+    const errorId = `${inputId}-error`;
+
+    return (
+      <div className="first:rounded-t-card last:rounded-b-card focus-within:bg-surface-hover">
+        <label htmlFor={inputId} className={cn(ROW, 'cursor-text')}>
+          <RowIcon icon={icon} />
+          <RowLabel label={label} required={required} />
+          <span className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1">
+            <span className="text-base text-text-muted">R$</span>
+            <MoneyInput
+              id={inputId}
+              ref={ref}
+              allowNegative={allowNegative}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? errorId : undefined}
+              aria-required={required || undefined}
+              className={cn(
+                'field-sizing-content h-10 min-w-[4ch] max-w-full bg-transparent text-right text-lg tabular-nums text-text focus-visible:outline-none sm:text-base',
+                error && 'text-danger',
+              )}
+              {...field}
+            />
+          </span>
+        </label>
+        <RowError id={errorId} error={error} />
+      </div>
+    );
+  },
+);
+MoneyRow.displayName = 'MoneyRow';

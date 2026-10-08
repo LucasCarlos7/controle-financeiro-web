@@ -9,6 +9,7 @@ import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
+import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 
 const TIPO_CONTA_OPTIONS: { value: TipoConta; label: string; description: string }[] = [
@@ -116,19 +117,8 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
         </FormSection>
 
         {!isEditing && (
-          <FormSection label="Saldo" hint="Saldo da conta no dia em que você começa a usar o app.">
-            <TextRow
-              id="saldoInicial"
-              icon="bank"
-              label="Saldo inicial"
-              prefix="R$"
-              type="number"
-              step="0.01"
-              inputMode="decimal"
-              className="tabular-nums"
-              onFocus={(event) => event.target.select()}
-              {...register('saldoInicial')}
-            />
+          <FormSection label="Saldo" hint="Saldo da conta no dia em que você começa a usar o app. Use “-” para saldo negativo.">
+            <MoneyRowField control={control} name="saldoInicial" id="saldoInicial" icon="bank" label="Saldo inicial" allowNegative />
           </FormSection>
         )}
 

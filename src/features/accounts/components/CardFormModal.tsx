@@ -10,6 +10,7 @@ import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
+import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 
 const formSchema = z.object({
@@ -106,19 +107,14 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
             error={errors.nome?.message}
             {...register('nome')}
           />
-          <TextRow
+          <MoneyRowField
+            control={control}
+            name="limite"
             id="limite"
             icon="wallet"
             label="Limite"
-            prefix="R$"
-            type="number"
-            step="0.01"
-            inputMode="decimal"
             required
-            className="tabular-nums"
             error={errors.limite?.message}
-            onFocus={(event) => event.target.select()}
-            {...register('limite')}
           />
         </FormSection>
 

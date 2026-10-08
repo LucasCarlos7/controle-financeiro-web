@@ -8,7 +8,8 @@ import { useCreateGoalMutation, useUpdateGoalMutation } from '../hooks/useGoalMu
 import type { Objetivo } from '../types';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { AmountInput, FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 
 const formSchema = z.object({
@@ -38,6 +39,7 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<GoalFormInput, unknown, GoalFormOutput>({
     resolver: zodResolver(formSchema),
@@ -81,7 +83,7 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
       }
     >
       <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
-        <AmountInput id="valorAlvo" label="Valor alvo" error={errors.valorAlvo?.message} {...register('valorAlvo')} />
+        <AmountInputField control={control} name="valorAlvo" id="valorAlvo" label="Valor alvo" error={errors.valorAlvo?.message} />
         <FormSection label="Objetivo">
           <TextRow
             id="nome"

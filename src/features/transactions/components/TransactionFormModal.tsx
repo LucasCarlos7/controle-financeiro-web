@@ -3,7 +3,8 @@ import { useEffect, useId, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { AmountInput, FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 import { useToast } from '../../../shared/hooks/useFeedback';
 import { todayApiDate } from '../../../shared/utils/format';
@@ -79,6 +80,7 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
     handleSubmit,
     reset,
     watch,
+    control,
     formState: { errors },
   } = form;
 
@@ -203,7 +205,13 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
         <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
           {!isEditing && <TransactionTypeField />}
 
-          <AmountInput id="valor" tone={AMOUNT_TONES[tipo]} error={errors.valor?.message} {...register('valor')} />
+          <AmountInputField
+            control={control}
+            name="valor"
+            id="valor"
+            tone={AMOUNT_TONES[tipo]}
+            error={errors.valor?.message}
+          />
 
           <FormSection label="Detalhes">
             <TextRow

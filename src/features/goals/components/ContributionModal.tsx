@@ -7,7 +7,8 @@ import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateContributionMutation } from '../hooks/useGoalMutations';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { AmountInput, FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 
 const formSchema = z.object({
@@ -35,6 +36,7 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<ContributionFormInput, unknown, ContributionFormOutput>({
     resolver: zodResolver(formSchema),
@@ -70,7 +72,7 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
       }
     >
       <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
-        <AmountInput id="valor" tone="income" error={errors.valor?.message} {...register('valor')} />
+        <AmountInputField control={control} name="valor" id="valor" tone="income" error={errors.valor?.message} />
         <FormSection label="Aporte" hint="O aporte soma no objetivo; ele não movimenta nenhuma conta.">
           <TextRow id="data" icon="calendar" label="Data" type="date" required error={errors.data?.message} {...register('data')} />
         </FormSection>
