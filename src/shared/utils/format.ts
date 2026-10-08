@@ -53,12 +53,13 @@ export function formatDayHeading(isoDate: string, today: Date = new Date()): str
   const diffDays = Math.round((startOfToday.getTime() - date.getTime()) / 86_400_000);
   if (diffDays === 0) return 'Hoje';
   if (diffDays === 1) return 'Ontem';
-  return date.toLocaleDateString('pt-BR', {
+  const text = date.toLocaleDateString('pt-BR', {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
     year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
   });
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function toApiDate(date: Date): string {

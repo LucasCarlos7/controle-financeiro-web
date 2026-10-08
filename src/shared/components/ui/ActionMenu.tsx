@@ -87,7 +87,7 @@ export function ActionMenu({ label, items, className }: ActionMenuProps) {
           role="menu"
           aria-label={label}
           className={cn(
-            'absolute right-0 z-30 min-w-48 animate-scale-in rounded-card border border-border bg-surface-raised p-1 shadow-raised',
+            'absolute right-0 z-30 w-max min-w-48 animate-scale-in rounded-card border border-border bg-surface-raised p-1 shadow-raised',
             openUpward ? 'bottom-full mb-1 origin-bottom-right' : 'top-full mt-1 origin-top-right',
           )}
         >
@@ -103,7 +103,7 @@ export function ActionMenu({ label, items, className }: ActionMenuProps) {
                 item.onSelect();
               }}
               className={cn(
-                'flex h-11 w-full items-center gap-2.5 rounded-control px-3 text-left text-base font-medium transition-colors focus-visible:outline-offset-[-2px] disabled:cursor-not-allowed disabled:opacity-55 sm:h-9',
+                'flex h-11 w-full items-center gap-2.5 whitespace-nowrap rounded-control px-3 text-left text-base font-medium transition-colors focus-visible:outline-offset-[-2px] disabled:cursor-not-allowed disabled:opacity-55 sm:h-9',
                 item.tone === 'danger'
                   ? 'text-danger hover:bg-danger-soft focus-visible:bg-danger-soft'
                   : 'text-text hover:bg-surface-hover focus-visible:bg-surface-hover',
