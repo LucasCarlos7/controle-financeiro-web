@@ -34,26 +34,28 @@ export function TransactionList({ transacoes, onEdit }: TransactionListProps) {
   const describe = useTransactionLookups();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {groupByDay(transacoes).map((group) => (
-        <section key={group.data} aria-label={formatDayHeading(group.data)}>
-          <div className="mb-2 flex items-baseline justify-between px-1">
-            <h2 className="text-sm font-semibold text-text">{formatDayHeading(group.data)}</h2>
-            {group.saldo !== 0 && <Amount value={group.saldo} className="text-sm text-text-muted" />}
+        <Card as="section" key={group.data} padding="none" aria-label={formatDayHeading(group.data)}>
+          <div className="flex items-baseline justify-between gap-3 px-4 pb-1 pt-3.5">
+            <h2 className="text-base font-semibold text-text">{formatDayHeading(group.data)}</h2>
+            {group.saldo !== 0 && (
+              <span className="text-sm text-text-muted">
+                Dia: <Amount value={group.saldo} kind="balance" className="font-semibold text-text" />
+              </span>
+            )}
           </div>
-          <Card padding="none" as="div" className="overflow-visible">
-            <ul className="divide-y divide-border">
-              {group.items.map((transacao) => (
-                <TransactionListItem
-                  key={transacao.id}
-                  transacao={transacao}
-                  display={describe(transacao)}
-                  onEdit={() => onEdit(transacao)}
-                />
-              ))}
-            </ul>
-          </Card>
-        </section>
+          <ul>
+            {group.items.map((transacao) => (
+              <TransactionListItem
+                key={transacao.id}
+                transacao={transacao}
+                display={describe(transacao)}
+                onEdit={() => onEdit(transacao)}
+              />
+            ))}
+          </ul>
+        </Card>
       ))}
     </div>
   );

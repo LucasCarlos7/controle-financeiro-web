@@ -9,16 +9,17 @@ import {
 import { ApiError } from '../../../shared/types/api';
 import { useConfirm, useToast } from '../../../shared/hooks/useFeedback';
 import { cn } from '../../../shared/utils/cn';
-import { Icon, type IconName } from '../../../shared/components/icons';
+import { Icon } from '../../../shared/components/icons';
+import { TransactionIcon } from './TransactionIcon';
 import { ActionMenu, type ActionMenuItem } from '../../../shared/components/ui/ActionMenu';
 import { Amount } from '../../../shared/components/ui/Amount';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 
-const TIPO_VISUAL: Record<Transacao['tipo'], { icon: IconName; className: string; kind: 'income' | 'expense' | 'transfer' }> = {
-  Receita: { icon: 'arrow-down-left', className: 'bg-success-soft text-income', kind: 'income' },
-  Despesa: { icon: 'arrow-up-right', className: 'bg-surface-sunken text-text-muted', kind: 'expense' },
-  Transferencia: { icon: 'swap', className: 'bg-primary-soft text-primary-text', kind: 'transfer' },
+const TIPO_VISUAL: Record<Transacao['tipo'], { kind: 'income' | 'expense' | 'transfer' }> = {
+  Receita: { kind: 'income' },
+  Despesa: { kind: 'expense' },
+  Transferencia: { kind: 'transfer' },
 };
 
 interface TransactionListItemProps {
@@ -107,12 +108,7 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
 
   return (
     <li className={cn('relative flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-card last:rounded-b-card hover:bg-surface-hover', busy && 'opacity-60')}>
-      <span
-        aria-hidden="true"
-        className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', visual.className)}
-      >
-        <Icon name={usaCartao ? 'card' : visual.icon} className="h-[18px] w-[18px]" />
-      </span>
+      <TransactionIcon transacao={transacao} cor={display.categoria?.cor} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
@@ -125,15 +121,14 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
           </button>
           <Amount value={transacao.valor} kind={visual.kind} className="shrink-0 text-base font-semibold" />
         </div>
-        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-sm text-text-muted">
-          {display.categoria?.cor && (
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: display.categoria.cor }}
-            />
+        <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-text-muted">
+          {display.origem && (
+            <span className="inline-flex min-w-0 items-center gap-1 rounded-sm bg-surface-hover px-1.5 py-0.5 text-text">
+              <Icon name={usaCartao ? 'card' : 'bank'} className="h-3 w-3 shrink-0" />
+              <span className="truncate">{usaCartao ? 'Crédito' : 'Débito'} · {display.origem}</span>
+            </span>
           )}
-          <span className="truncate">{[categoriaTexto, display.origem].filter(Boolean).join(' · ')}</span>
+          <span className="truncate">{categoriaTexto}</span>
         </p>
         {hasBadges && (
           <div className="mt-1.5 flex flex-wrap gap-1">

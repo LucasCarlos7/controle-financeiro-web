@@ -29,7 +29,7 @@ export function TransactionFiltersBar({ filters, onChange }: TransactionFiltersB
   }
 
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <div className="flex gap-2">
         <Input
           type="search"
@@ -42,7 +42,7 @@ export function TransactionFiltersBar({ filters, onChange }: TransactionFiltersB
         />
         <Button
           type="button"
-          variant="outline"
+          variant={activeCount > 0 ? 'primary' : 'outline'}
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((current) => !current)}
@@ -50,7 +50,7 @@ export function TransactionFiltersBar({ filters, onChange }: TransactionFiltersB
           <Icon name="sliders" className="h-4 w-4" />
           Filtros
           {activeCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-fg">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-fill px-1.5 text-xs font-semibold text-white">
               {activeCount}
             </span>
           )}

@@ -38,7 +38,7 @@ export function AppRoutes() {
           <Route
             path="/extrato"
             element={
-              <Page width="wide">
+              <Page width="full">
                 <TransactionsPage />
               </Page>
             }

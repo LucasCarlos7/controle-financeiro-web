@@ -54,7 +54,7 @@ export function formatDayHeading(isoDate: string, today: Date = new Date()): str
   if (diffDays === 0) return 'Hoje';
   if (diffDays === 1) return 'Ontem';
   const text = date.toLocaleDateString('pt-BR', {
-    weekday: 'short',
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
