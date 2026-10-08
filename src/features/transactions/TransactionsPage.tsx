@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTransactionsQuery } from './hooks/useTransactionsQuery';
+import { useNewTransaction } from './hooks/useNewTransaction';
 import { TransactionFiltersBar } from './components/TransactionFiltersBar';
 import { TransactionFormModal } from './components/TransactionFormModal';
 import { TransactionList, TransactionListSkeleton } from './components/TransactionList';
@@ -27,7 +28,7 @@ export function TransactionsPage() {
   const { data, isLoading, isError, error, refetch } = useTransactionsQuery(filters);
   const [modalState, setModalState] = useState<{ open: boolean; transaction?: Transacao }>({ open: false });
   const hasFilters = Object.values(filters).some(Boolean);
-  const openNew = () => setModalState({ open: true });
+  const openNew = useNewTransaction();
 
   return (
     <div>

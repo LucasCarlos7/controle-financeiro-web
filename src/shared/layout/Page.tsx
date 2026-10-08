@@ -17,7 +17,7 @@ interface PageProps {
 
 export function Page({ width = 'default', children }: PageProps) {
   return (
-    <div className={cn('mx-auto w-full px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-14 lg:pt-10', WIDTH_CLASSES[width])}>
+    <div className={cn('mx-auto w-full px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-28 lg:pt-8', WIDTH_CLASSES[width])}>
       {children}
     </div>
   );

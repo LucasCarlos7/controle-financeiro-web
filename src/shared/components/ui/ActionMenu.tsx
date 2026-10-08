@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 import { Icon, type IconName } from '../icons';
 import { IconButton } from './IconButton';
@@ -16,10 +16,14 @@ interface ActionMenuProps {
   label: string;
   items: ActionMenuItem[];
   className?: string;
+  /** Conteúdo do botão no lugar do ícone "⋯" (ex.: avatar). */
+  trigger?: ReactNode;
+  /** Bloco informativo no topo do menu (ex.: nome e e-mail). */
+  header?: ReactNode;
 }
 
 /** Menu "⋯" com as ações secundárias de um item. Setas navegam, Esc fecha. */
-export function ActionMenu({ label, items, className }: ActionMenuProps) {
+export function ActionMenu({ label, items, className, trigger, header }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -72,15 +76,30 @@ export function ActionMenu({ label, items, className }: ActionMenuProps) {
 
   return (
     <div ref={rootRef} className={cn('relative', className)} onKeyDown={open ? handleKeyDown : undefined}>
-      <IconButton
-        ref={buttonRef}
-        icon="more"
-        label={label}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((current) => !current)}
-      />
+      {trigger ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          aria-label={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-controls={open ? menuId : undefined}
+          onClick={() => setOpen((current) => !current)}
+          className="hit-area rounded-full"
+        >
+          {trigger}
+        </button>
+      ) : (
+        <IconButton
+          ref={buttonRef}
+          icon="more"
+          label={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-controls={open ? menuId : undefined}
+          onClick={() => setOpen((current) => !current)}
+        />
+      )}
       {open && (
         <div
           id={menuId}
@@ -91,6 +110,7 @@ export function ActionMenu({ label, items, className }: ActionMenuProps) {
             openUpward ? 'bottom-full mb-1 origin-bottom-right' : 'top-full mt-1 origin-top-right',
           )}
         >
+          {header && <div className="mb-1 border-b border-border px-3 pb-2.5 pt-2">{header}</div>}
           {items.map((item) => (
             <button
               key={item.label}
