@@ -154,7 +154,7 @@ export function SelectRow({
         options={options}
         value={value}
         onClose={() => setOpen(false)}
-        onApply={(next) => {
+        onSelect={(next) => {
           onChange(next);
           setOpen(false);
         }}

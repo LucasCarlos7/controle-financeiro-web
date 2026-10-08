@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { cn } from '../../utils/cn';
 import { Icon } from '../icons';
-import { Button } from './Button';
 import { Modal } from './Modal';
 
 export interface PickerOption {
@@ -18,41 +16,24 @@ interface OptionPickerProps {
   options: PickerOption[];
   value: string;
   onClose: () => void;
-  onApply: (value: string) => void;
+  onSelect: (value: string) => void;
 }
 
-/** Diálogo "Qual é o ...?": lista de opções e o botão Aplicar. */
-export function OptionPicker({ open, title, options, value, onClose, onApply }: OptionPickerProps) {
-  if (!open) return null;
-  return <OptionPickerDialog title={title} options={options} value={value} onClose={onClose} onApply={onApply} />;
-}
-
-function OptionPickerDialog({ title, options, value, onClose, onApply }: Omit<OptionPickerProps, 'open'>) {
-  const [draft, setDraft] = useState(value);
-
+/** Diálogo "Qual é o ...?": lista de opções; escolher uma já aplica e fecha. */
+export function OptionPicker({ open, title, options, value, onClose, onSelect }: OptionPickerProps) {
   return (
-    <Modal
-      open
-      title={title}
-      onClose={onClose}
-      footer={
-        <Button type="button" className="h-12 w-full" onClick={() => onApply(draft)}>
-          Aplicar
-        </Button>
-      }
-    >
+    <Modal open={open} title={title} onClose={onClose}>
       <div role="radiogroup" aria-label={title} className="space-y-2">
         {options.length === 0 && <p className="text-base text-text-muted">Nenhuma opção cadastrada.</p>}
         {options.map((option) => {
-          const selected = option.value === draft;
+          const selected = option.value === value;
           return (
             <button
               key={option.value}
               type="button"
               role="radio"
               aria-checked={selected}
-              onClick={() => setDraft(option.value)}
-              onDoubleClick={() => onApply(option.value)}
+              onClick={() => onSelect(option.value)}
               className={cn(
                 'flex min-h-11 w-full items-center gap-2.5 rounded-control border px-3 py-2 text-left text-base font-medium transition-colors',
                 selected
