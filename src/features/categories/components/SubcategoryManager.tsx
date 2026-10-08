@@ -5,21 +5,41 @@ import {
   useDeleteSubcategoryMutation,
   useUpdateSubcategoryMutation,
 } from '../hooks/useCategoryMutations';
+import { ApiError } from '../../../shared/types/api';
+import { useConfirm, useToast } from '../../../shared/hooks/useFeedback';
 import { Button } from '../../../shared/components/ui/Button';
+import { RemovableChip } from '../../../shared/components/ui/Chip';
+import { Input } from '../../../shared/components/ui/Input';
 import { Icon } from '../../../shared/components/icons';
 
 export function SubcategoryManager({ category }: { category: Categoria }) {
   const [novaSubcategoria, setNovaSubcategoria] = useState('');
+  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<{ id: string; nome: string } | null>(null);
   const createMutation = useCreateSubcategoryMutation();
   const updateMutation = useUpdateSubcategoryMutation();
   const deleteMutation = useDeleteSubcategoryMutation();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const subcategorias = category.subcategorias ?? [];
+
+  const onError = (error: Error) =>
+    toast({ tone: 'danger', message: error instanceof ApiError ? error.message : 'Não foi possível salvar.' });
 
   function handleAdd(event: FormEvent) {
     event.preventDefault();
     const nome = novaSubcategoria.trim();
     if (!nome) return;
-    createMutation.mutate({ categoriaId: category.id, request: { nome } }, { onSuccess: () => setNovaSubcategoria('') });
+    createMutation.mutate(
+      { categoriaId: category.id, request: { nome } },
+      {
+        onSuccess: () => {
+          setNovaSubcategoria('');
+          toast('Subcategoria adicionada');
+        },
+        onError,
+      },
+    );
   }
 
   function commitRename(nomeAtual: string) {
@@ -28,7 +48,10 @@ export function SubcategoryManager({ category }: { category: Categoria }) {
     const subcategoriaId = editing.id;
     setEditing(null);
     if (!nome || nome === nomeAtual) return;
-    updateMutation.mutate({ categoriaId: category.id, subcategoriaId, request: { nome } });
+    updateMutation.mutate(
+      { categoriaId: category.id, subcategoriaId, request: { nome } },
+      { onSuccess: () => toast('Subcategoria renomeada'), onError },
+    );
   }
 
   function handleRenameKey(event: KeyboardEvent<HTMLInputElement>, nomeAtual: string) {
@@ -40,63 +63,80 @@ export function SubcategoryManager({ category }: { category: Categoria }) {
     }
   }
 
-  function handleDelete(subcategoriaId: string, nome: string) {
-    if (window.confirm(`Remover a subcategoria "${nome}"?`)) {
-      deleteMutation.mutate({ categoriaId: category.id, subcategoriaId });
+  async function handleDelete(subcategoriaId: string, nome: string) {
+    const ok = await confirm({
+      title: 'Remover subcategoria?',
+      description: `"${nome}" deixa de existir em ${category.nome}.`,
+      confirmLabel: 'Remover',
+      destructive: true,
+    });
+    if (ok) {
+      deleteMutation.mutate(
+        { categoriaId: category.id, subcategoriaId },
+        { onSuccess: () => toast('Subcategoria removida'), onError },
+      );
     }
   }
 
   return (
-    <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
-      <div className="flex flex-wrap gap-2">
-        {(category.subcategorias ?? []).map((sub) =>
-          editing?.id === sub.id ? (
-            <input
-              key={sub.id}
-              autoFocus
-              value={editing.nome}
-              onChange={(event) => setEditing({ id: sub.id, nome: event.target.value })}
-              onKeyDown={(event) => handleRenameKey(event, sub.nome)}
-              onBlur={() => commitRename(sub.nome)}
-              aria-label={`Novo nome para ${sub.nome}`}
-              className="w-36 rounded-full border border-indigo-500 bg-white px-3 py-1 text-xs text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-indigo-500/20"
-            />
-          ) : (
-            <span
-              key={sub.id}
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-            >
-              <button
-                type="button"
+    <div className="mt-2 space-y-2">
+      {subcategorias.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {subcategorias.map((sub) =>
+            editing?.id === sub.id ? (
+              <input
+                key={sub.id}
+                autoFocus
+                value={editing.nome}
+                onChange={(event) => setEditing({ id: sub.id, nome: event.target.value })}
+                onKeyDown={(event) => handleRenameKey(event, sub.nome)}
+                onBlur={() => commitRename(sub.nome)}
+                aria-label={`Novo nome para ${sub.nome}`}
+                className="h-8 w-40 rounded-full border border-primary bg-surface px-3 text-sm text-text focus-visible:outline-offset-0"
+              />
+            ) : (
+              <RemovableChip
+                key={sub.id}
                 onClick={() => setEditing({ id: sub.id, nome: sub.nome })}
-                className="hover:underline"
-                title="Clique para renomear"
+                clickLabel={`Renomear ${sub.nome}`}
+                onRemove={() => handleDelete(sub.id, sub.nome)}
+                removeLabel={`Remover ${sub.nome}`}
               >
                 {sub.nome}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(sub.id, sub.nome)}
-                className="text-slate-400 transition-colors hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
-                aria-label={`Remover ${sub.nome}`}
-              >
-                <Icon name="x" className="h-3 w-3" />
-              </button>
-            </span>
-          ),
-        )}
-      </div>
-      <form onSubmit={handleAdd} className="mt-2 flex gap-2">
-        <input
-          value={novaSubcategoria}
-          onChange={(event) => setNovaSubcategoria(event.target.value)}
-          placeholder="Nova subcategoria"
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-indigo-500/20"
-        />
-        <Button type="submit" variant="outline" size="sm" disabled={createMutation.isPending}>
-          Adicionar
-        </Button>
-      </form>
+              </RemovableChip>
+            ),
+          )}
+        </div>
+      )}
+
+      {adding ? (
+        <form onSubmit={handleAdd} className="flex items-start gap-2">
+          <Input
+            autoFocus
+            aria-label={`Nova subcategoria de ${category.nome}`}
+            placeholder="Nome da subcategoria"
+            value={novaSubcategoria}
+            onChange={(event) => setNovaSubcategoria(event.target.value)}
+            onKeyDown={(event) => event.key === 'Escape' && setAdding(false)}
+            containerClassName="flex-1"
+          />
+          <Button type="submit" variant="outline" loading={createMutation.isPending}>
+            Adicionar
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
+            Fechar
+          </Button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="hit-area inline-flex items-center gap-1.5 rounded-control text-sm font-medium text-primary-text hover:underline"
+        >
+          <Icon name="plus" className="h-3.5 w-3.5" />
+          Adicionar subcategoria
+        </button>
+      )}
     </div>
   );
 }
