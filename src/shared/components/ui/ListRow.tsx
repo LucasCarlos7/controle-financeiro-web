@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
-import { Icon, type IconName } from '../icons';
+import { EntityIcon } from '../icons';
 
 interface ListRowProps {
-  icon: IconName;
+  /** Nome do ícone (catálogo ou interface). */
+  icon: string;
   iconClassName?: string;
   title: ReactNode;
   /** Abre o item (ex.: edição). A linha inteira vira área clicável. */
@@ -44,7 +45,7 @@ export function ListRow({
         aria-hidden="true"
         className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', iconClassName)}
       >
-        <Icon name={icon} className="h-[18px] w-[18px]" />
+        <EntityIcon name={icon} className="h-[18px] w-[18px]" />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">

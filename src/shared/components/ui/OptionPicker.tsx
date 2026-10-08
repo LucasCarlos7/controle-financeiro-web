@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
-import { Icon, type IconName } from '../icons';
+import { EntityIcon, Icon } from '../icons';
 import { Modal } from './Modal';
 
 export interface PickerOption {
   value: string;
   label: string;
   description?: string;
-  /** Ícone à esquerda, num quadrado. */
-  icon?: IconName;
+  /** Ícone à esquerda, num quadrado: nome do catálogo ou da interface. */
+  icon?: string | null;
   /** Cor (ex.: da categoria): tinge o quadrado do ícone, ou vira uma bolinha quando não há ícone. */
   color?: string | null;
   /** Informação à direita, ex.: "Saldo atual" / R$ 1.234,56 / "Fecha dia 5". */
@@ -35,9 +35,9 @@ function OptionMedia({ icon, color }: Pick<PickerOption, 'icon' | 'color'>) {
     <span
       aria-hidden="true"
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-surface-sunken text-text-muted ring-1 ring-border"
-      style={color ? { backgroundColor: `color-mix(in oklch, ${color} 22%, transparent)`, color } : undefined}
+      style={color ? { backgroundColor: `color-mix(in oklch, ${color} 22%, transparent)`, color: `color-mix(in oklch, ${color} 75%, var(--color-text))` } : undefined}
     >
-      <Icon name={icon} className="h-[18px] w-[18px]" />
+      <EntityIcon name={icon} className="h-[18px] w-[18px]" />
     </span>
   );
 }

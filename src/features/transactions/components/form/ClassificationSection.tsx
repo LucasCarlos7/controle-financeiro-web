@@ -6,7 +6,7 @@ import { SelectableChip } from '../../../../shared/components/ui/Chip';
 import { FormSection } from '../../../../shared/components/ui/FormRows';
 import type { PickerOption } from '../../../../shared/components/ui/OptionPicker';
 import { SelectRowField } from '../../../../shared/components/ui/SelectRowField';
-import { Icon } from '../../../../shared/components/icons';
+import { EntityIcon, Icon } from '../../../../shared/components/icons';
 import { useTransactionForm } from './useTransactionForm';
 
 const NENHUMA: PickerOption = { value: '', label: 'Nenhuma', description: 'Sem classificação', icon: 'x' };
@@ -48,7 +48,7 @@ export function ClassificationSection() {
             value: categoria.id,
             label: categoria.nome,
             description: subcategoriasLabel(categoria.subcategorias?.length ?? 0),
-            icon: 'tag' as const,
+            icon: categoria.icone || 'tag',
             color: categoria.cor,
           })),
         ]}
@@ -97,6 +97,7 @@ export function ClassificationSection() {
                         field.onChange(selected ? current.filter((id) => id !== tag.id) : [...current, tag.id])
                       }
                     >
+                      {tag.icone && <EntityIcon name={tag.icone} className="h-3.5 w-3.5" />}
                       {tag.nome}
                     </SelectableChip>
                   );

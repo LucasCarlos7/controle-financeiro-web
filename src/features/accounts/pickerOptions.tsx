@@ -21,7 +21,7 @@ export function contaOption(conta: Conta): PickerOption {
     value: conta.id,
     label: conta.nome,
     description: TIPO_CONTA_LABELS[conta.tipo],
-    icon: TIPO_CONTA_ICONS[conta.tipo],
+    icon: conta.icone || TIPO_CONTA_ICONS[conta.tipo],
     meta: { label: 'Saldo atual', value: <Amount value={conta.saldoAtual} kind="balance" /> },
   };
 }
@@ -32,7 +32,7 @@ export function cartaoOption(cartao: CartaoCredito): PickerOption {
     value: cartao.id,
     label: cartao.nome,
     description: `Fecha dia ${cartao.diaFechamento} · vence ${cartao.diaVencimento}`,
-    icon: 'card',
+    icon: cartao.icone || 'card',
     meta: {
       label: 'Disponível',
       value: <Amount value={cartao.limiteDisponivel} kind="balance" />,

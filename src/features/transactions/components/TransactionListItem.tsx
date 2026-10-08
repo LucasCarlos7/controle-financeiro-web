@@ -108,7 +108,7 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
 
   return (
     <li className={cn('relative flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-card last:rounded-b-card hover:bg-surface-hover', busy && 'opacity-60')}>
-      <TransactionIcon transacao={transacao} cor={display.categoria?.cor} />
+      <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">

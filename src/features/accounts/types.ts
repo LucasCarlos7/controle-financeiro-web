@@ -6,6 +6,7 @@ export interface Conta {
   tipo: TipoConta;
   saldoInicial: number;
   saldoAtual: number;
+  icone?: string | null;
   ativo: boolean;
 }
 
@@ -13,10 +14,12 @@ export interface CreateContaRequest {
   nome: string;
   tipo: TipoConta;
   saldoInicial: number;
+  icone?: string | null;
 }
 
 export interface UpdateContaRequest {
   nome: string;
+  icone?: string | null;
 }
 
 export interface CartaoCredito {
@@ -27,6 +30,7 @@ export interface CartaoCredito {
   diaFechamento: number;
   diaVencimento: number;
   contaPagamentoId?: string | null;
+  icone?: string | null;
   ativo: boolean;
 }
 
@@ -36,6 +40,7 @@ export interface CreateCartaoCreditoRequest {
   diaFechamento: number;
   diaVencimento: number;
   contaPagamentoId?: string | null;
+  icone?: string | null;
 }
 
 export type UpdateCartaoCreditoRequest = CreateCartaoCreditoRequest;

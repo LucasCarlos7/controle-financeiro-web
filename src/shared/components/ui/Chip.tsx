@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 import { Icon } from '../icons';
 
-const BASE = 'inline-flex h-8 items-center rounded-full text-sm font-medium transition-colors duration-(--duration-fast)';
+const BASE = 'inline-flex h-8 items-center gap-1.5 rounded-full text-sm font-medium transition-colors duration-(--duration-fast)';
 
 interface SelectableChipProps {
   selected: boolean;

@@ -119,7 +119,7 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
               options={despesaCategories.map((categoria) => ({
                 value: categoria.id,
                 label: categoria.nome,
-                icon: 'tag' as const,
+                icon: categoria.icone || 'tag',
                 color: categoria.cor,
               }))}
               required

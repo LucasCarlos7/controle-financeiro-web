@@ -9,11 +9,10 @@ import { useTransactionLookups } from '../../transactions/hooks/useTransactionLo
 import { Amount } from '../../../shared/components/ui/Amount';
 import { ProgressBar } from '../../../shared/components/ui/ProgressBar';
 import { TextLink } from '../../../shared/components/ui/TextLink';
-import { Icon } from '../../../shared/components/icons';
+import { EntityIcon, Icon } from '../../../shared/components/icons';
+import { TIPO_CONTA_ICONS, TIPO_CONTA_LABELS } from '../../accounts/pickerOptions';
 import { formatDate, formatPercent } from '../../../shared/utils/format';
 import { CardEmpty, CardStatus, DashboardCard } from './DashboardCard';
-
-const TIPO_CONTA: Record<string, string> = { Corrente: 'Conta corrente', Poupanca: 'Poupança', Carteira: 'Carteira' };
 
 export function AccountsCard() {
   const { data, isLoading, error, refetch } = useAccountsQuery(true);
@@ -29,11 +28,11 @@ export function AccountsCard() {
             {data.map((conta) => (
               <li key={conta.id} className="flex items-center gap-3 px-1 py-2.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-text">
-                  <Icon name="bank" className="h-4 w-4" />
+                  <EntityIcon name={conta.icone} fallback={TIPO_CONTA_ICONS[conta.tipo]} className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium text-text">{conta.nome}</p>
-                  <p className="text-sm text-text-muted">{TIPO_CONTA[conta.tipo]}</p>
+                  <p className="text-sm text-text-muted">{TIPO_CONTA_LABELS[conta.tipo]}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-text-muted">Saldo atual</p>
@@ -71,7 +70,7 @@ export function CreditCardsCard() {
               <li key={cartao.id}>
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-12 shrink-0 items-center justify-center rounded-control bg-primary text-primary-fg">
-                    <Icon name="card" className="h-4 w-4" />
+                    <EntityIcon name={cartao.icone} fallback="card" className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-base font-medium text-text">{cartao.nome}</p>
@@ -116,7 +115,7 @@ export function LatestTransactionsCard() {
             const kind = transacao.tipo === 'Receita' ? 'income' : transacao.tipo === 'Despesa' ? 'expense' : 'transfer';
             return (
               <li key={transacao.id} className="flex items-center gap-3 px-1 py-2.5">
-                <TransactionIcon transacao={transacao} cor={display.categoria?.cor} size="sm" />
+                <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium text-text">{transacao.descricao}</p>
                   <p className="truncate text-xs text-text-muted">

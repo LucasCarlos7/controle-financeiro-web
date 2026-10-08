@@ -10,6 +10,7 @@ import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { contaOption } from '../pickerOptions';
+import { IconPickerField } from '../../../shared/components/ui/IconPicker';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
@@ -20,6 +21,7 @@ const formSchema = z.object({
   diaFechamento: z.coerce.number().int().min(1, 'Entre 1 e 31').max(31, 'Entre 1 e 31'),
   diaVencimento: z.coerce.number().int().min(1, 'Entre 1 e 31').max(31, 'Entre 1 e 31'),
   contaPagamentoId: z.string().optional(),
+  icone: z.string().optional(),
 });
 
 type CardFormInput = z.input<typeof formSchema>;
@@ -48,7 +50,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
     formState: { errors },
   } = useForm<CardFormInput, unknown, CardFormOutput>({
     resolver: zodResolver(formSchema),
-    defaultValues: { nome: '', limite: 0, diaFechamento: 1, diaVencimento: 10, contaPagamentoId: '' },
+    defaultValues: { nome: '', limite: 0, diaFechamento: 1, diaVencimento: 10, contaPagamentoId: '', icone: '' },
   });
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
         diaFechamento: card?.diaFechamento ?? 1,
         diaVencimento: card?.diaVencimento ?? 10,
         contaPagamentoId: card?.contaPagamentoId ?? '',
+        icone: card?.icone ?? '',
       });
     }
   }, [open, card, reset]);
@@ -72,6 +75,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
       diaFechamento: data.diaFechamento,
       diaVencimento: data.diaVencimento,
       contaPagamentoId: data.contaPagamentoId || null,
+      icone: data.icone || null,
     };
     const done = (message: string) => () => {
       toast(message);
@@ -108,6 +112,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
             error={errors.nome?.message}
             {...register('nome')}
           />
+          <IconPickerField control={control} name="icone" fallback="card" />
           <MoneyRowField
             control={control}
             name="limite"

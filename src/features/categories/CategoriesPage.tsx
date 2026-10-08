@@ -1,13 +1,13 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { ApiError } from '../../shared/types/api';
 import { useConfirm, useToast } from '../../shared/hooks/useFeedback';
 import { ActionMenu } from '../../shared/components/ui/ActionMenu';
 import { Button } from '../../shared/components/ui/Button';
 import { Card } from '../../shared/components/ui/Card';
-import { RemovableChip } from '../../shared/components/ui/Chip';
 import { EmptyState } from '../../shared/components/ui/EmptyState';
 import { ErrorState } from '../../shared/components/ui/ErrorState';
-import { Input } from '../../shared/components/ui/Input';
+import { IconBadge } from '../../shared/components/ui/IconPicker';
+import { ListRow } from '../../shared/components/ui/ListRow';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { Skeleton } from '../../shared/components/ui/Skeleton';
 import { Tabs } from '../../shared/components/ui/Tabs';
@@ -15,10 +15,11 @@ import { Icon } from '../../shared/components/icons';
 import { useCategoriesQuery } from './hooks/useCategoriesQuery';
 import { useDeleteCategoryMutation } from './hooks/useCategoryMutations';
 import { useTagsQuery } from './hooks/useTagsQuery';
-import { useCreateTagMutation, useDeleteTagMutation } from './hooks/useTagMutations';
+import { useDeleteTagMutation } from './hooks/useTagMutations';
 import { CategoryFormModal } from './components/CategoryFormModal';
 import { SubcategoryManager } from './components/SubcategoryManager';
-import type { Categoria, TipoCategoria } from './types';
+import { TagFormModal } from './components/TagFormModal';
+import type { Categoria, Tag, TipoCategoria } from './types';
 
 const SECOES: { tipo: TipoCategoria; titulo: string }[] = [
   { tipo: 'Despesa', titulo: 'Despesas' },
@@ -100,11 +101,7 @@ function CategoriesTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (ca
                 {categorias.map((categoria) => (
                   <li key={categoria.id} className="px-4 py-4 sm:px-5">
                     <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="h-3 w-3 shrink-0 rounded-full ring-2 ring-surface"
-                        style={{ backgroundColor: categoria.cor ?? 'var(--color-text-subtle)' }}
-                      />
+                      <IconBadge name={categoria.icone} fallback="tag" color={categoria.cor} className="h-9 w-9 rounded-full ring-0" />
                       <h3 className="min-w-0 flex-1 truncate text-base font-semibold text-text">{categoria.nome}</h3>
                       <ActionMenu
                         label={`Ações de ${categoria.nome}`}
@@ -115,7 +112,7 @@ function CategoriesTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (ca
                         ]}
                       />
                     </div>
-                    <div className="pl-6">
+                    <div className="pl-12">
                       <SubcategoryManager category={categoria} />
                     </div>
                   </li>
@@ -129,80 +126,64 @@ function CategoriesTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (ca
   );
 }
 
-function TagsTab() {
+function TagsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (tag: Tag) => void }) {
   const { data, isLoading, isError, error, refetch } = useTagsQuery();
-  const createMutation = useCreateTagMutation();
   const deleteMutation = useDeleteTagMutation();
   const confirm = useConfirm();
   const toast = useToast();
   const onError = useErrorToast();
-  const [novaTag, setNovaTag] = useState('');
 
-  function handleAdd(event: FormEvent) {
-    event.preventDefault();
-    const nome = novaTag.trim();
-    if (!nome) return;
-    createMutation.mutate(
-      { nome },
-      {
-        onSuccess: () => {
-          setNovaTag('');
-          toast('Tag criada');
-        },
-        onError,
-      },
-    );
-  }
-
-  async function handleDelete(id: string, nome: string) {
+  async function handleDelete(tag: Tag) {
     const ok = await confirm({
       title: 'Remover tag?',
-      description: `"${nome}" sai de todos os lançamentos.`,
+      description: `"${tag.nome}" sai de todos os lançamentos.`,
       confirmLabel: 'Remover',
       destructive: true,
     });
-    if (ok) deleteMutation.mutate(id, { onSuccess: () => toast('Tag removida'), onError });
+    if (ok) deleteMutation.mutate(tag.id, { onSuccess: () => toast('Tag removida'), onError });
+  }
+
+  if (isLoading) return <CategoriesSkeleton />;
+  if (isError) return <ErrorState error={error} onRetry={() => refetch()} />;
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        icon="tag"
+        title="Nenhuma tag cadastrada"
+        description="Tags marcam lançamentos de receita e despesa com contexto extra."
+        action={
+          <Button type="button" onClick={onCreate}>
+            <Icon name="plus" className="h-4 w-4" />
+            Nova tag
+          </Button>
+        }
+      />
+    );
   }
 
   return (
-    <Card>
-      <form onSubmit={handleAdd} className="flex items-start gap-2">
-        <Input
-          aria-label="Nome da nova tag"
-          placeholder="Nova tag"
-          value={novaTag}
-          onChange={(event) => setNovaTag(event.target.value)}
-          containerClassName="flex-1"
-        />
-        <Button type="submit" loading={createMutation.isPending}>
-          {!createMutation.isPending && <Icon name="plus" className="h-4 w-4" />}
-          Adicionar
-        </Button>
-      </form>
-      <p className="mt-2 text-sm text-text-muted">Tags marcam lançamentos de receita e despesa com contexto extra.</p>
-
-      <div className="mt-5 border-t border-border pt-5">
-        {isLoading && (
-          <div className="flex gap-2">
-            {[64, 88, 72].map((width) => (
-              <Skeleton key={width} className="h-8 rounded-full" style={{ width }} />
-            ))}
-          </div>
-        )}
-        {isError && <ErrorState variant="compact" error={error} onRetry={() => refetch()} />}
-        {!isLoading && !isError && data && data.length === 0 && (
-          <EmptyState variant="compact" icon="tag" title="Nenhuma tag cadastrada" />
-        )}
-        {!isLoading && !isError && data && data.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {data.map((tag) => (
-              <RemovableChip key={tag.id} removeLabel={`Remover ${tag.nome}`} onRemove={() => handleDelete(tag.id, tag.nome)}>
-                #{tag.nome}
-              </RemovableChip>
-            ))}
-          </div>
-        )}
-      </div>
+    <Card padding="none">
+      <ul className="divide-y divide-border">
+        {data.map((tag) => (
+          <ListRow
+            key={tag.id}
+            icon={tag.icone || 'tag'}
+            iconClassName="bg-primary-soft text-primary-text"
+            title={<span className="truncate">#{tag.nome}</span>}
+            onOpen={() => onEdit(tag)}
+            openLabel={`Editar tag ${tag.nome}`}
+            actions={
+              <ActionMenu
+                label={`Ações de ${tag.nome}`}
+                items={[
+                  { label: 'Editar', icon: 'pencil', onSelect: () => onEdit(tag) },
+                  { label: 'Remover', icon: 'trash', tone: 'danger', onSelect: () => handleDelete(tag) },
+                ]}
+              />
+            }
+          />
+        ))}
+      </ul>
     </Card>
   );
 }
@@ -210,7 +191,9 @@ function TagsTab() {
 export function CategoriesPage() {
   const [tab, setTab] = useState<'categorias' | 'tags'>('categorias');
   const [modalState, setModalState] = useState<{ open: boolean; category?: Categoria }>({ open: false });
+  const [tagModal, setTagModal] = useState<{ open: boolean; tag?: Tag }>({ open: false });
   const openNew = () => setModalState({ open: true });
+  const openNewTag = () => setTagModal({ open: true });
 
   return (
     <div>
@@ -223,7 +206,12 @@ export function CategoriesPage() {
               <Icon name="plus" className="h-4 w-4" />
               Nova categoria
             </Button>
-          ) : undefined
+          ) : (
+            <Button type="button" onClick={openNewTag}>
+              <Icon name="plus" className="h-4 w-4" />
+              Nova tag
+            </Button>
+          )
         }
       />
       <Tabs
@@ -238,7 +226,7 @@ export function CategoriesPage() {
       {tab === 'categorias' ? (
         <CategoriesTab onCreate={openNew} onEdit={(category) => setModalState({ open: true, category })} />
       ) : (
-        <TagsTab />
+        <TagsTab onCreate={openNewTag} onEdit={(tag) => setTagModal({ open: true, tag })} />
       )}
 
       <CategoryFormModal
@@ -246,6 +234,7 @@ export function CategoriesPage() {
         category={modalState.category}
         onClose={() => setModalState({ open: false })}
       />
+      <TagFormModal open={tagModal.open} tag={tagModal.tag} onClose={() => setTagModal({ open: false })} />
     </div>
   );
 }

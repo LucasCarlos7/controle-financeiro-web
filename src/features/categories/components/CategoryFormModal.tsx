@@ -9,6 +9,7 @@ import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { FormError } from '../../../shared/components/ui/FormError';
+import { IconPickerField } from '../../../shared/components/ui/IconPicker';
 import { SegmentedControl } from '../../../shared/components/ui/SegmentedControl';
 
 const formSchema = z.object({
@@ -129,7 +130,7 @@ export function CategoryFormModal({ open, onClose, category }: CategoryFormModal
               {...register('cor')}
             />
           </label>
-          <TextRow id="icone" icon="text" label="Ícone" placeholder="shopping-cart" {...register('icone')} />
+          <IconPickerField control={control} name="icone" fallback="tag" color={watch('cor')} />
         </FormSection>
 
         <FormError error={mutation.error} />

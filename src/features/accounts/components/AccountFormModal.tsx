@@ -10,6 +10,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import type { PickerOption } from '../../../shared/components/ui/OptionPicker';
 import { TIPO_CONTA_ICONS, TIPO_CONTA_LABELS } from '../pickerOptions';
+import { IconPickerField } from '../../../shared/components/ui/IconPicker';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
@@ -31,6 +32,7 @@ const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
   tipo: z.enum(['Corrente', 'Poupanca', 'Carteira']),
   saldoInicial: z.coerce.number(),
+  icone: z.string().optional(),
 });
 
 type AccountFormInput = z.input<typeof formSchema>;
@@ -55,10 +57,11 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm<AccountFormInput, unknown, AccountFormOutput>({
     resolver: zodResolver(formSchema),
-    defaultValues: { nome: '', tipo: 'Corrente', saldoInicial: 0 },
+    defaultValues: { nome: '', tipo: 'Corrente', saldoInicial: 0, icone: '' },
   });
 
   useEffect(() => {
@@ -67,6 +70,7 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
         nome: account?.nome ?? '',
         tipo: account?.tipo ?? 'Corrente',
         saldoInicial: account?.saldoInicial ?? 0,
+        icone: account?.icone ?? '',
       });
     }
   }, [open, account, reset]);
@@ -79,10 +83,10 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
       onClose();
     };
     if (isEditing && account) {
-      updateMutation.mutate({ id: account.id, request: { nome: data.nome } }, { onSuccess: done('Conta atualizada') });
+      updateMutation.mutate({ id: account.id, request: { nome: data.nome, icone: data.icone || null } }, { onSuccess: done('Conta atualizada') });
     } else {
       createMutation.mutate(
-        { nome: data.nome, tipo: data.tipo, saldoInicial: data.saldoInicial },
+        { nome: data.nome, tipo: data.tipo, saldoInicial: data.saldoInicial, icone: data.icone || null },
         { onSuccess: done('Conta criada') },
       );
     }
@@ -94,7 +98,7 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
       onClose={onClose}
       variant="sheet"
       title={isEditing ? 'Editar conta' : 'Criar conta'}
-      description={isEditing ? 'Depois de criada, só o apelido da conta pode ser alterado.' : undefined}
+      description={isEditing ? 'Depois de criada, só o apelido e o ícone podem ser alterados.' : undefined}
       footer={
         <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
           {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar conta'}
@@ -112,6 +116,7 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
             error={errors.nome?.message}
             {...register('nome')}
           />
+          <IconPickerField control={control} name="icone" fallback={TIPO_CONTA_ICONS[watch('tipo')]} />
           {!isEditing && (
             <SelectRowField
               control={control}

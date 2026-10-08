@@ -21,7 +21,7 @@ import { Skeleton } from '../../shared/components/ui/Skeleton';
 import { Tabs } from '../../shared/components/ui/Tabs';
 import { Icon } from '../../shared/components/icons';
 import { formatCurrency } from '../../shared/utils/format';
-import { TIPO_CONTA_LABELS } from './pickerOptions';
+import { TIPO_CONTA_ICONS, TIPO_CONTA_LABELS } from './pickerOptions';
 import type { CartaoCredito, Conta } from './types';
 
 type Tab = 'contas' | 'cartoes';
@@ -103,7 +103,7 @@ function AccountsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cont
           {data.map((conta) => (
             <ListRow
               key={conta.id}
-              icon="wallet"
+              icon={conta.icone || TIPO_CONTA_ICONS[conta.tipo]}
               iconClassName={conta.ativo ? 'bg-primary-soft text-primary-text' : 'bg-surface-sunken text-text-subtle'}
               title={
                 <>
@@ -186,7 +186,7 @@ function CardsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cartao:
             return (
               <ListRow
                 key={cartao.id}
-                icon="card"
+                icon={cartao.icone || 'card'}
                 iconClassName={cartao.ativo ? 'bg-primary-soft text-primary-text' : 'bg-surface-sunken text-text-subtle'}
                 title={
                   <>
