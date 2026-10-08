@@ -1,15 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { Conta, TipoConta } from '../types';
 import { useCreateAccountMutation, useUpdateAccountMutation } from '../hooks/useAccountMutations';
-import { ApiError } from '../../../shared/types/api';
-import { Modal } from '../../../shared/components/ui/Modal';
-import { Button } from '../../../shared/components/ui/Button';
+import { useToast } from '../../../shared/hooks/useFeedback';
+import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { FormError } from '../../../shared/components/ui/FormError';
 import { Input } from '../../../shared/components/ui/Input';
 import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
 
 const TIPO_CONTA_OPTIONS: { value: TipoConta; label: string }[] = [
   { value: 'Corrente', label: 'Conta corrente' },
@@ -34,6 +33,8 @@ interface AccountFormModalProps {
 
 export function AccountFormModal({ open, onClose, account }: AccountFormModalProps) {
   const isEditing = Boolean(account);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateAccountMutation();
   const updateMutation = useUpdateAccountMutation();
   const mutation = isEditing ? updateMutation : createMutation;
@@ -61,20 +62,30 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
   if (!open) return null;
 
   function onSubmit(data: AccountFormOutput) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && account) {
-      updateMutation.mutate({ id: account.id, request: { nome: data.nome } }, { onSuccess: onClose });
+      updateMutation.mutate({ id: account.id, request: { nome: data.nome } }, { onSuccess: done('Conta atualizada') });
     } else {
       createMutation.mutate(
         { nome: data.nome, tipo: data.tipo, saldoInicial: data.saldoInicial },
-        { onSuccess: onClose },
+        { onSuccess: done('Conta criada') },
       );
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar conta' : 'Nova conta'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="nome" label="Nome" error={errors.nome?.message} {...register('nome')} />
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Editar conta' : 'Nova conta'}
+      description={isEditing ? 'Depois de criada, só o nome da conta pode ser alterado.' : undefined}
+      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+    >
+      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Input id="nome" label="Nome" placeholder="Ex.: Nubank" error={errors.nome?.message} {...register('nome')} />
 
         {!isEditing && (
           <>
@@ -89,27 +100,18 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
               id="saldoInicial"
               type="number"
               step="0.01"
+              inputMode="decimal"
+              prefix="R$"
               label="Saldo inicial"
+              hint="Saldo da conta no dia em que você começa a usar o app."
+              className="tabular-nums"
+              onFocus={(event) => event.target.select()}
               {...register('saldoInicial')}
             />
           </>
         )}
 
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );
