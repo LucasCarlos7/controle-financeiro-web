@@ -5,15 +5,16 @@ import { z } from 'zod';
 import type { Conta, TipoConta } from '../types';
 import { useCreateAccountMutation, useUpdateAccountMutation } from '../hooks/useAccountMutations';
 import { useToast } from '../../../shared/hooks/useFeedback';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
 
-const TIPO_CONTA_OPTIONS: { value: TipoConta; label: string }[] = [
-  { value: 'Corrente', label: 'Conta corrente' },
-  { value: 'Poupanca', label: 'Poupança' },
-  { value: 'Carteira', label: 'Carteira' },
+const TIPO_CONTA_OPTIONS: { value: TipoConta; label: string; description: string }[] = [
+  { value: 'Corrente', label: 'Conta corrente', description: 'Conta de banco do dia a dia' },
+  { value: 'Poupanca', label: 'Poupança', description: 'Reserva com rendimento' },
+  { value: 'Carteira', label: 'Carteira', description: 'Dinheiro em espécie' },
 ];
 
 const formSchema = z.object({
@@ -43,6 +44,7 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<AccountFormInput, unknown, AccountFormOutput>({
     resolver: zodResolver(formSchema),
@@ -80,35 +82,54 @@ export function AccountFormModal({ open, onClose, account }: AccountFormModalPro
     <Modal
       open={open}
       onClose={onClose}
-      title={isEditing ? 'Editar conta' : 'Nova conta'}
-      description={isEditing ? 'Depois de criada, só o nome da conta pode ser alterado.' : undefined}
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+      variant="sheet"
+      title={isEditing ? 'Editar conta' : 'Criar conta'}
+      description={isEditing ? 'Depois de criada, só o apelido da conta pode ser alterado.' : undefined}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar conta'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="nome" label="Nome" placeholder="Ex.: Nubank" error={errors.nome?.message} {...register('nome')} />
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormSection label="Minha conta">
+          <TextRow
+            id="nome"
+            icon="text"
+            label="Apelido da conta"
+            placeholder="Ex.: Nubank"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          {!isEditing && (
+            <SelectRowField
+              control={control}
+              name="tipo"
+              icon="wallet"
+              label="Tipo de conta"
+              pickerTitle="Qual é o tipo de conta?"
+              options={TIPO_CONTA_OPTIONS}
+              required
+            />
+          )}
+        </FormSection>
 
         {!isEditing && (
-          <>
-            <Select id="tipo" label="Tipo" {...register('tipo')}>
-              {TIPO_CONTA_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-            <Input
+          <FormSection label="Saldo" hint="Saldo da conta no dia em que você começa a usar o app.">
+            <TextRow
               id="saldoInicial"
+              icon="bank"
+              label="Saldo inicial"
+              prefix="R$"
               type="number"
               step="0.01"
               inputMode="decimal"
-              prefix="R$"
-              label="Saldo inicial"
-              hint="Saldo da conta no dia em que você começa a usar o app."
               className="tabular-nums"
               onFocus={(event) => event.target.select()}
               {...register('saldoInicial')}
             />
-          </>
+          </FormSection>
         )}
 
         <FormError error={mutation.error} />

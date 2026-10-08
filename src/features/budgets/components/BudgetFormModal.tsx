@@ -6,10 +6,11 @@ import { useCategoriesQuery } from '../../categories/hooks/useCategoriesQuery';
 import { useCreateBudgetMutation, useUpdateBudgetMutation } from '../hooks/useBudgetMutations';
 import type { Orcamento } from '../types';
 import { useToast } from '../../../shared/hooks/useFeedback';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { AmountInput, FormSection } from '../../../shared/components/ui/FormRows';
+import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
 import { formatMonthYear } from '../../../shared/utils/format';
 
 const formSchema = z.object({
@@ -43,6 +44,7 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<BudgetFormInput, unknown, BudgetFormOutput>({
     resolver: zodResolver(formSchema),
@@ -85,44 +87,39 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
     <Modal
       open={open}
       onClose={onClose}
+      variant="sheet"
       title={isEditing ? 'Editar orçamento' : 'Novo orçamento'}
       description={
         isEditing
           ? `${categoriaNome ?? 'Categoria'} · ${formatMonthYear(ano, mes)}`
           : `Limite de gasto para ${formatMonthYear(ano, mes).toLowerCase()}`
       }
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar orçamento'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AmountInput id="limiteValor" label="Limite do mês" error={errors.limiteValor?.message} {...register('limiteValor')} />
         {!isEditing && (
-          <Select
-            id="categoriaId"
-            label="Categoria"
-            hint="Só categorias de despesa."
-            error={errors.categoriaId?.message}
-            {...register('categoriaId')}
-          >
-            <option value="">Selecione</option>
-            {despesaCategories.map((categoria) => (
-              <option key={categoria.id} value={categoria.id}>
-                {categoria.nome}
-              </option>
-            ))}
-          </Select>
+          <FormSection label="Classificação" hint="Só categorias de despesa.">
+            <SelectRowField
+              control={control}
+              name="categoriaId"
+              icon="tag"
+              label="Categoria"
+              pickerTitle="Qual é a categoria?"
+              options={despesaCategories.map((categoria) => ({
+                value: categoria.id,
+                label: categoria.nome,
+                color: categoria.cor,
+              }))}
+              required
+              error={errors.categoriaId?.message}
+            />
+          </FormSection>
         )}
-
-        <Input
-          id="limiteValor"
-          type="number"
-          step="0.01"
-          inputMode="decimal"
-          prefix="R$"
-          label="Limite"
-          className="tabular-nums"
-          error={errors.limiteValor?.message}
-          onFocus={(event) => event.target.select()}
-          {...register('limiteValor')}
-        />
 
         <FormError error={mutation.error} />
       </form>

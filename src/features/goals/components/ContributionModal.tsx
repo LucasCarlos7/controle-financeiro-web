@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { todayApiDate } from '../../../shared/utils/format';
 import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateContributionMutation } from '../hooks/useGoalMutations';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { AmountInput, FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
 
 const formSchema = z.object({
   valor: z.coerce.number().positive('Informe um valor válido'),
@@ -28,6 +29,7 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
   const formId = useId();
   const toast = useToast();
   const createMutation = useCreateContributionMutation();
+  const mutation = createMutation;
 
   const {
     register,
@@ -58,29 +60,22 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
     <Modal
       open={open}
       onClose={onClose}
+      variant="sheet"
       title="Registrar aporte"
       description={goalName}
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={createMutation.isPending} />}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : 'Registrar aporte'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            id="valor"
-            type="number"
-            step="0.01"
-            inputMode="decimal"
-            prefix="R$"
-            label="Valor"
-            className="tabular-nums"
-            error={errors.valor?.message}
-            onFocus={(event) => event.target.select()}
-            {...register('valor')}
-          />
-          <Input id="data" type="date" label="Data" error={errors.data?.message} {...register('data')} />
-        </div>
-        <p className="text-sm text-text-muted">O aporte soma no objetivo; ele não movimenta nenhuma conta.</p>
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AmountInput id="valor" tone="income" error={errors.valor?.message} {...register('valor')} />
+        <FormSection label="Aporte" hint="O aporte soma no objetivo; ele não movimenta nenhuma conta.">
+          <TextRow id="data" icon="calendar" label="Data" type="date" required error={errors.data?.message} {...register('data')} />
+        </FormSection>
 
-        <FormError error={createMutation.error} />
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

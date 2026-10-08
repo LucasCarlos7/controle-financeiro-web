@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateCategoryMutation, useUpdateCategoryMutation } from '../hooks/useCategoryMutations';
 import type { Categoria, TipoCategoria } from '../types';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
 import { SegmentedControl } from '../../../shared/components/ui/SegmentedControl';
 
 const formSchema = z.object({
@@ -19,9 +20,9 @@ const formSchema = z.object({
 
 type CategoryFormData = z.infer<typeof formSchema>;
 
-const TIPOS: { value: TipoCategoria; label: string }[] = [
-  { value: 'Despesa', label: 'Despesa' },
-  { value: 'Receita', label: 'Receita' },
+const TIPOS: { value: TipoCategoria; label: string; tone: 'danger' | 'success' }[] = [
+  { value: 'Despesa', label: 'Despesa', tone: 'danger' },
+  { value: 'Receita', label: 'Receita', tone: 'success' },
 ];
 
 interface CategoryFormModalProps {
@@ -43,6 +44,7 @@ export function CategoryFormModal({ open, onClose, category }: CategoryFormModal
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
@@ -82,43 +84,53 @@ export function CategoryFormModal({ open, onClose, category }: CategoryFormModal
     <Modal
       open={open}
       onClose={onClose}
+      variant="sheet"
       title={isEditing ? 'Editar categoria' : 'Nova categoria'}
       description={isEditing ? 'O tipo da categoria não pode ser alterado.' : undefined}
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar categoria'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
         {!isEditing && (
           <Controller
             control={control}
             name="tipo"
             render={({ field }) => (
-              <SegmentedControl label="Tipo" showLabel options={TIPOS} value={field.value} onChange={field.onChange} />
+              <SegmentedControl label="Tipo" options={TIPOS} value={field.value} onChange={field.onChange} className="mb-5" />
             )}
           />
         )}
 
-        <Input id="nome" label="Nome" placeholder="Ex.: Mercado" error={errors.nome?.message} {...register('nome')} />
-
-        <div className="grid grid-cols-[auto_1fr] gap-4">
-          <div>
-            <label htmlFor="cor" className="mb-1.5 block text-sm font-medium text-text">
-              Cor
-            </label>
+        <FormSection label="Categoria">
+          <TextRow
+            id="nome"
+            icon="tag"
+            label="Nome"
+            placeholder="Ex.: Mercado"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          <label htmlFor="cor" className="flex min-h-14 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-surface-hover">
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-sunken ring-1 ring-border"
+            >
+              <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: watch('cor') }} />
+            </span>
+            <span className="text-base font-medium text-text">Cor</span>
             <input
               id="cor"
               type="color"
-              className="block h-11 w-16 cursor-pointer rounded-control border border-border-strong bg-surface p-1 shadow-card sm:h-10"
+              className="ml-auto h-8 w-12 cursor-pointer rounded-control border border-border-strong bg-transparent p-0.5"
               {...register('cor')}
             />
-          </div>
-          <Input
-            id="icone"
-            label="Ícone"
-            hint="Opcional. Nome do ícone, ex.: shopping-cart."
-            placeholder="shopping-cart"
-            {...register('icone')}
-          />
-        </div>
+          </label>
+          <TextRow id="icone" icon="text" label="Ícone" placeholder="shopping-cart" {...register('icone')} />
+        </FormSection>
 
         <FormError error={mutation.error} />
       </form>

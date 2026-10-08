@@ -6,9 +6,10 @@ import { todayApiDate } from '../../../shared/utils/format';
 import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateGoalMutation, useUpdateGoalMutation } from '../hooks/useGoalMutations';
 import type { Objetivo } from '../types';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { AmountInput, FormSection, TextRow } from '../../../shared/components/ui/FormRows';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -71,33 +72,36 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
     <Modal
       open={open}
       onClose={onClose}
+      variant="sheet"
       title={isEditing ? 'Editar objetivo' : 'Novo objetivo'}
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar objetivo'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input
-          id="nome"
-          label="Nome"
-          placeholder="Ex.: Reserva de emergência"
-          error={errors.nome?.message}
-          {...register('nome')}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            id="valorAlvo"
-            type="number"
-            step="0.01"
-            inputMode="decimal"
-            prefix="R$"
-            label="Valor alvo"
-            className="tabular-nums"
-            error={errors.valorAlvo?.message}
-            onFocus={(event) => event.target.select()}
-            {...register('valorAlvo')}
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AmountInput id="valorAlvo" label="Valor alvo" error={errors.valorAlvo?.message} {...register('valorAlvo')} />
+        <FormSection label="Objetivo">
+          <TextRow
+            id="nome"
+            icon="target"
+            label="Nome"
+            placeholder="Ex.: Viagem"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
           />
-          <Input id="dataAlvo" type="date" label="Data alvo" error={errors.dataAlvo?.message} {...register('dataAlvo')} />
-        </div>
+          <TextRow
+            id="dataAlvo"
+            icon="calendar"
+            label="Data alvo"
+            type="date"
+            required
+            error={errors.dataAlvo?.message}
+            {...register('dataAlvo')}
+          />
+        </FormSection>
 
         <FormError error={mutation.error} />
       </form>

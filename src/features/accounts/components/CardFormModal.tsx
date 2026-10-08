@@ -6,10 +6,11 @@ import { useCreateCardMutation, useUpdateCardMutation } from '../hooks/useCardMu
 import { useAccountsQuery } from '../hooks/useAccountsQuery';
 import type { CartaoCredito } from '../types';
 import { useToast } from '../../../shared/hooks/useFeedback';
-import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { FormError } from '../../../shared/components/ui/FormError';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -41,6 +42,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<CardFormInput, unknown, CardFormOutput>({
     resolver: zodResolver(formSchema),
@@ -85,61 +87,79 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
     <Modal
       open={open}
       onClose={onClose}
-      title={isEditing ? 'Editar cartão de crédito' : 'Novo cartão de crédito'}
-      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+      variant="sheet"
+      title={isEditing ? 'Editar cartão' : 'Novo cartão de crédito'}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar cartão'}
+        </Button>
+      }
     >
-      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="cardNome" label="Nome" placeholder="Ex.: Nubank" error={errors.nome?.message} {...register('nome')} />
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormSection label="Cartão">
+          <TextRow
+            id="cardNome"
+            icon="card"
+            label="Apelido do cartão"
+            placeholder="Ex.: Nubank"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          <TextRow
+            id="limite"
+            icon="wallet"
+            label="Limite"
+            prefix="R$"
+            type="number"
+            step="0.01"
+            inputMode="decimal"
+            required
+            className="tabular-nums"
+            error={errors.limite?.message}
+            onFocus={(event) => event.target.select()}
+            {...register('limite')}
+          />
+        </FormSection>
 
-        <Input
-          id="limite"
-          type="number"
-          step="0.01"
-          inputMode="decimal"
-          prefix="R$"
-          label="Limite"
-          className="tabular-nums"
-          error={errors.limite?.message}
-          onFocus={(event) => event.target.select()}
-          {...register('limite')}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <Input
+        <FormSection label="Fatura">
+          <TextRow
             id="diaFechamento"
+            icon="calendar"
+            label="Dia de fechamento"
             type="number"
             inputMode="numeric"
             min={1}
             max={31}
-            label="Dia de fechamento"
+            required
             error={errors.diaFechamento?.message}
             {...register('diaFechamento')}
           />
-          <Input
+          <TextRow
             id="diaVencimento"
+            icon="calendar"
+            label="Dia de vencimento"
             type="number"
             inputMode="numeric"
             min={1}
             max={31}
-            label="Dia de vencimento"
+            required
             error={errors.diaVencimento?.message}
             {...register('diaVencimento')}
           />
-        </div>
-
-        <Select
-          id="contaPagamentoId"
-          label="Conta de pagamento"
-          hint="Opcional. Conta de onde a fatura costuma ser paga."
-          {...register('contaPagamentoId')}
-        >
-          <option value="">Nenhuma</option>
-          {(accounts ?? []).map((conta) => (
-            <option key={conta.id} value={conta.id}>
-              {conta.nome}
-            </option>
-          ))}
-        </Select>
+          <SelectRowField
+            control={control}
+            name="contaPagamentoId"
+            icon="bank"
+            label="Conta de pagamento"
+            pickerTitle="De qual conta a fatura é paga?"
+            placeholder="Nenhuma"
+            options={[
+              { value: '', label: 'Nenhuma' },
+              ...(accounts ?? []).map((conta) => ({ value: conta.id, label: conta.nome })),
+            ]}
+          />
+        </FormSection>
 
         <FormError error={mutation.error} />
       </form>

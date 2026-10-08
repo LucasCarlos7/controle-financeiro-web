@@ -79,7 +79,7 @@ export const TextRow = forwardRef<HTMLInputElement, TextRowProps>(
               aria-required={required || undefined}
               className={cn(
                 'h-10 min-w-0 bg-transparent text-right text-lg text-text placeholder:text-text-subtle focus-visible:outline-none sm:text-base',
-                props.type === 'date' ? 'w-auto' : 'w-full',
+                props.type === 'date' ? 'w-auto' : prefix ? 'field-sizing-content min-w-[3ch] max-w-full' : 'w-full',
                 error && 'text-danger',
                 className,
               )}
@@ -198,6 +198,7 @@ ToggleRow.displayName = 'ToggleRow';
 interface AmountInputProps extends InputHTMLAttributes<HTMLInputElement> {
   tone?: 'expense' | 'income' | 'neutral';
   error?: string;
+  label?: string;
 }
 
 const AMOUNT_TONES = {
@@ -208,7 +209,7 @@ const AMOUNT_TONES = {
 
 /** Valor em destaque no topo do formulário: "− R$ 0,00" grande, colorido pelo tipo. */
 export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
-  ({ tone = 'neutral', error, id, className, ...props }, ref) => {
+  ({ tone = 'neutral', error, label = 'Valor', id, className, ...props }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     const { color, sign } = AMOUNT_TONES[tone];
@@ -216,7 +217,7 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
     return (
       <div className="mb-5 px-1">
         <label htmlFor={inputId} className="text-sm font-medium text-text-muted">
-          Valor
+          {label}
         </label>
         <div className={cn('mt-1 flex items-baseline gap-1.5 font-semibold', color)}>
           <span className="shrink-0 whitespace-nowrap text-xl">
