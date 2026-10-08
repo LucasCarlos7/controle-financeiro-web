@@ -100,7 +100,7 @@ function AccountsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cont
     <>
       <SummaryCard
         label="Saldo total"
-        value={<Amount value={saldoTotal} kind="balance" />}
+        value={<Amount value={saldoTotal} kind="balance" split />}
         hint={`${ativas.length} ${ativas.length === 1 ? 'conta ativa' : 'contas ativas'}`}
       />
       <Card padding="none">
@@ -119,7 +119,7 @@ function AccountsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cont
               onOpen={() => onEdit(conta)}
               openLabel={`Editar ${conta.nome}`}
               meta={TIPO_LABELS[conta.tipo]}
-              value={<Amount value={conta.saldoAtual} kind="balance" className="text-base font-semibold" />}
+              value={<Amount value={conta.saldoAtual} kind="balance" split className="text-base font-semibold" />}
               actions={
                 <ActionMenu
                   label={`Ações de ${conta.nome}`}
@@ -181,7 +181,7 @@ function CardsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cartao:
     <>
       <SummaryCard
         label="Limite disponível"
-        value={<Amount value={disponivel} />}
+        value={<Amount value={disponivel} split />}
         hint={`de ${formatCurrency(limite)} em ${ativos.length} ${ativos.length === 1 ? 'cartão ativo' : 'cartões ativos'}`}
       />
       <Card padding="none">
@@ -204,7 +204,7 @@ function CardsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cartao:
                 meta={`Fecha dia ${cartao.diaFechamento} · Vence dia ${cartao.diaVencimento}`}
                 value={
                   <>
-                    <Amount value={cartao.limiteDisponivel} className="block text-base font-semibold" />
+                    <Amount value={cartao.limiteDisponivel} split className="block text-base font-semibold" />
                     <span className="text-sm text-text-muted">
                       de <Amount value={cartao.limite} />
                     </span>

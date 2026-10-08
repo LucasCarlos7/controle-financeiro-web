@@ -112,7 +112,7 @@ function GoalCard({
       </div>
 
       <p className="mt-4 text-xl font-semibold tracking-tight text-text">
-        <Amount value={objetivo.valorAtual} />
+        <Amount value={objetivo.valorAtual} split />
         <span className="text-base font-medium text-text-muted">
           {' '}
           de <Amount value={objetivo.valorAlvo} />

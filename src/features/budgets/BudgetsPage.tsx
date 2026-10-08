@@ -129,7 +129,7 @@ export function BudgetsPage() {
               <div>
                 <p className="text-base font-medium text-text-muted">Total do mês</p>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight text-text sm:text-3xl">
-                  <Amount value={totalConsumido} />
+                  <Amount value={totalConsumido} split />
                   <span className="text-lg font-medium text-text-muted">
                     {' '}
                     de <Amount value={totalLimite} />
@@ -174,7 +174,7 @@ export function BudgetsPage() {
                   </div>
 
                   <p className="mt-3 text-xl font-semibold tracking-tight text-text">
-                    <Amount value={orcamento.valorConsumido} />
+                    <Amount value={orcamento.valorConsumido} split />
                     <span className="text-base font-medium text-text-muted">
                       {' '}
                       de <Amount value={orcamento.limiteValor} />
