@@ -235,3 +235,36 @@ Referência de tom: **sóbrio e confiável, com densidade de ferramenta** (Mercu
 4. **Git**: `controle-financeiro-web` não é um repositório git hoje. Para os commits pedidos é preciso `git init` (e decidir o que entra no primeiro commit de baseline).
 5. **`ConfirmDialog` no lugar de `window.confirm`** e **toast de sucesso**: os dois são só apresentação e não exigem dependência. Incluo na Fase 3?
 6. **Extrato com categoria e conta na linha** (lookup no cliente com as queries que já existem, sem tocar na API): ok?
+
+---
+
+## 6. Resultado (Fases 2 a 4)
+
+Decisões aplicadas: Inter via Google Fonts (CSS, sem pacote); despesa neutra com "−" nas listas e vermelho reservado para saldo negativo, estouro e erro; correção do bug F1 em commit `fix` separado; `ConfirmDialog` e toast próprios; categoria e conta no extrato via lookup no cliente.
+
+Verificação final (mesmo método da seção "Como foi feita", API simulada):
+
+| Critério | Antes | Depois |
+|---|---|---|
+| Classes de paleta (`slate-`, `indigo-`...) em componentes | 602 | **0** (a paleta padrão foi removida do tema: uma classe crua nem compila) |
+| Prefixos `dark:` | 296 | **0** |
+| Cores hex em TSX | 34 | 1 (cor padrão de categoria nova, que é dado enviado à API) |
+| Telas com falha de contraste AA (de 51 medidas) | 33 | **0** |
+| Telas com scroll horizontal | 0 | 0 |
+| `tabular-nums` em valores | 0 | todos os valores passam por `Amount` |
+| Modal: Esc, foco preso, foco restaurado, scroll travado | não | sim |
+| `npm run lint` | 3 warnings | 2 warnings (ambos já existiam) |
+
+Fluxos de escrita conferidos no browser, comparando o payload enviado: criar despesa com subcategoria e tag, transferência, compra parcelada no cartão, editar lançamento, marcar como pago, cancelar recorrência, excluir com confirmação e editar orçamento.
+
+Screenshots com os mesmos nomes em [`antes/`](design-audit/antes/) e [`depois/`](design-audit/depois/).
+
+### Pendências e sugestões fora do escopo
+
+- **Teste manual com a API real** ainda não foi feito (API e Docker estavam parados). Os fluxos foram validados com respostas simuladas.
+- **Campo de valor** continua `type="number"` (agora com prefixo "R$", sem setas e com o 0 selecionado ao focar). Uma máscara BRL de verdade exigiria mudar a conversão nos schemas zod, que ficaram fora do escopo.
+- **Fonte** carregada do Google Fonts: para funcionar offline e não fazer requisição a terceiros, vale servir os arquivos `woff2` da Inter em `public/`.
+- **Sem testes automatizados no front**: não há runner configurado. Sugestão: Vitest + Testing Library para `Modal`, `ActionMenu`, `Amount` e `groupByDay` (exige novas dependências).
+- **Erro com 5xx** ainda leva ~3,6 s para aparecer por causa das retentativas do `queryClient` (comportamento, não apresentação).
+- Os links da sidebar e os campos têm 40px de altura no desktop (ponteiro fino); no mobile, todos os alvos têm 44px.
+- Cores de categoria escolhidas pelo usuário não são validadas quanto a contraste; hoje aparecem só em pontos e barras, nunca como cor de texto.
