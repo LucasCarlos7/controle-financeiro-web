@@ -9,6 +9,7 @@ import { BudgetsPage } from '../features/budgets/BudgetsPage';
 import { GoalsPage } from '../features/goals/GoalsPage';
 import { ProtectedRoute } from '../shared/components/ProtectedRoute';
 import { AppShell } from '../shared/layout/AppShell';
+import { Page } from '../shared/layout/Page';
 import { Spinner } from '../shared/components/ui/Spinner';
 
 const DashboardPage = lazy(() =>
@@ -27,16 +28,53 @@ export function AppRoutes() {
           <Route
             path="/dashboard"
             element={
-              <Suspense fallback={<Spinner label="Carregando painel..." />}>
-                <DashboardPage />
-              </Suspense>
+              <Page width="wide">
+                <Suspense fallback={<Spinner label="Carregando painel..." />}>
+                  <DashboardPage />
+                </Suspense>
+              </Page>
             }
           />
-          <Route path="/extrato" element={<TransactionsPage />} />
-          <Route path="/contas" element={<AccountsPage />} />
-          <Route path="/categorias" element={<CategoriesPage />} />
-          <Route path="/orcamentos" element={<BudgetsPage />} />
-          <Route path="/objetivos" element={<GoalsPage />} />
+          <Route
+            path="/extrato"
+            element={
+              <Page width="wide">
+                <TransactionsPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/contas"
+            element={
+              <Page>
+                <AccountsPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/categorias"
+            element={
+              <Page>
+                <CategoriesPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/orcamentos"
+            element={
+              <Page>
+                <BudgetsPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/objetivos"
+            element={
+              <Page>
+                <GoalsPage />
+              </Page>
+            }
+          />
         </Route>
       </Route>
 
