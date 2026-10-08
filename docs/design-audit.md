@@ -249,7 +249,7 @@ Verificação final (mesmo método da seção "Como foi feita", API simulada):
 | Classes de paleta (`slate-`, `indigo-`...) em componentes | 602 | **0** (a paleta padrão foi removida do tema: uma classe crua nem compila) |
 | Prefixos `dark:` | 296 | **0** |
 | Cores hex em TSX | 34 | 1 (cor padrão de categoria nova, que é dado enviado à API) |
-| Telas com falha de contraste AA (de 51 medidas) | 33 | **0** |
+| Telas com falha de contraste AA (de 51 medidas) | 30 | **0** |
 | Telas com scroll horizontal | 0 | 0 |
 | `tabular-nums` em valores | 0 | todos os valores passam por `Amount` |
 | Modal: Esc, foco preso, foco restaurado, scroll travado | não | sim |
