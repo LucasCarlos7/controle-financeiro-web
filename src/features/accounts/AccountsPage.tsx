@@ -21,13 +21,8 @@ import { Skeleton } from '../../shared/components/ui/Skeleton';
 import { Tabs } from '../../shared/components/ui/Tabs';
 import { Icon } from '../../shared/components/icons';
 import { formatCurrency } from '../../shared/utils/format';
+import { TIPO_CONTA_LABELS } from './pickerOptions';
 import type { CartaoCredito, Conta } from './types';
-
-const TIPO_LABELS: Record<Conta['tipo'], string> = {
-  Corrente: 'Conta corrente',
-  Poupanca: 'Poupança',
-  Carteira: 'Carteira',
-};
 
 type Tab = 'contas' | 'cartoes';
 
@@ -118,7 +113,7 @@ function AccountsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (cont
               }
               onOpen={() => onEdit(conta)}
               openLabel={`Editar ${conta.nome}`}
-              meta={TIPO_LABELS[conta.tipo]}
+              meta={TIPO_CONTA_LABELS[conta.tipo]}
               value={<Amount value={conta.saldoAtual} kind="balance" split className="text-base font-semibold" />}
               actions={
                 <ActionMenu

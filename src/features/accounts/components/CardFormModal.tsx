@@ -9,6 +9,7 @@ import { useToast } from '../../../shared/hooks/useFeedback';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { contaOption } from '../pickerOptions';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
@@ -152,7 +153,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
             placeholder="Nenhuma"
             options={[
               { value: '', label: 'Nenhuma' },
-              ...(accounts ?? []).map((conta) => ({ value: conta.id, label: conta.nome })),
+              ...(accounts ?? []).map(contaOption),
             ]}
           />
         </FormSection>

@@ -8,15 +8,24 @@ import { useToast } from '../../../shared/hooks/useFeedback';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import type { PickerOption } from '../../../shared/components/ui/OptionPicker';
+import { TIPO_CONTA_ICONS, TIPO_CONTA_LABELS } from '../pickerOptions';
 import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
 import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
 import { FormError } from '../../../shared/components/ui/FormError';
 
-const TIPO_CONTA_OPTIONS: { value: TipoConta; label: string; description: string }[] = [
-  { value: 'Corrente', label: 'Conta corrente', description: 'Conta de banco do dia a dia' },
-  { value: 'Poupanca', label: 'Poupança', description: 'Reserva com rendimento' },
-  { value: 'Carteira', label: 'Carteira', description: 'Dinheiro em espécie' },
-];
+const TIPO_CONTA_DESCRIPTIONS: Record<TipoConta, string> = {
+  Corrente: 'Conta de banco do dia a dia',
+  Poupanca: 'Reserva com rendimento',
+  Carteira: 'Dinheiro em espécie',
+};
+
+const TIPO_CONTA_OPTIONS: PickerOption[] = (Object.keys(TIPO_CONTA_LABELS) as TipoConta[]).map((tipo) => ({
+  value: tipo,
+  label: TIPO_CONTA_LABELS[tipo],
+  description: TIPO_CONTA_DESCRIPTIONS[tipo],
+  icon: TIPO_CONTA_ICONS[tipo],
+}));
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),

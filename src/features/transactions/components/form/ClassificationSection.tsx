@@ -4,11 +4,17 @@ import { useCategoriesQuery } from '../../../categories/hooks/useCategoriesQuery
 import { useTagsQuery } from '../../../categories/hooks/useTagsQuery';
 import { SelectableChip } from '../../../../shared/components/ui/Chip';
 import { FormSection } from '../../../../shared/components/ui/FormRows';
+import type { PickerOption } from '../../../../shared/components/ui/OptionPicker';
 import { SelectRowField } from '../../../../shared/components/ui/SelectRowField';
 import { Icon } from '../../../../shared/components/icons';
 import { useTransactionForm } from './useTransactionForm';
 
-const NENHUMA = { value: '', label: 'Nenhuma' };
+const NENHUMA: PickerOption = { value: '', label: 'Nenhuma', description: 'Sem classificação', icon: 'x' };
+
+function subcategoriasLabel(count: number) {
+  if (count === 0) return undefined;
+  return count === 1 ? '1 subcategoria' : `${count} subcategorias`;
+}
 
 /** Categoria do tipo escolhido, subcategoria (quando houver) e tags. */
 export function ClassificationSection() {
@@ -23,10 +29,9 @@ export function ClassificationSection() {
     () => (categories ?? []).filter((categoria) => categoria.tipo === tipo),
     [categories, tipo],
   );
-  const subcategorias = useMemo(
-    () => categoriasDoTipo.find((categoria) => categoria.id === categoriaId)?.subcategorias ?? [],
-    [categoriasDoTipo, categoriaId],
-  );
+  const categoriaAtual = categoriasDoTipo.find((categoria) => categoria.id === categoriaId);
+  const subcategorias = categoriaAtual?.subcategorias ?? [];
+  const categoriaCor = categoriaAtual?.cor;
 
   return (
     <FormSection label="Classificação">
@@ -39,7 +44,13 @@ export function ClassificationSection() {
         placeholder="Nenhuma"
         options={[
           NENHUMA,
-          ...categoriasDoTipo.map((categoria) => ({ value: categoria.id, label: categoria.nome, color: categoria.cor })),
+          ...categoriasDoTipo.map((categoria) => ({
+            value: categoria.id,
+            label: categoria.nome,
+            description: subcategoriasLabel(categoria.subcategorias?.length ?? 0),
+            icon: 'tag' as const,
+            color: categoria.cor,
+          })),
         ]}
       />
 
@@ -51,7 +62,10 @@ export function ClassificationSection() {
           label="Subcategoria"
           pickerTitle="Qual é a subcategoria?"
           placeholder="Nenhuma"
-          options={[NENHUMA, ...subcategorias.map((sub) => ({ value: sub.id, label: sub.nome }))]}
+          options={[
+            NENHUMA,
+            ...subcategorias.map((sub) => ({ value: sub.id, label: sub.nome, icon: 'tag' as const, color: categoriaCor })),
+          ]}
         />
       )}
 

@@ -1,11 +1,12 @@
 import { FormSection, TextRow, ToggleRow } from '../../../../shared/components/ui/FormRows';
+import type { PickerOption } from '../../../../shared/components/ui/OptionPicker';
 import { SelectRowField } from '../../../../shared/components/ui/SelectRowField';
 import { useTransactionForm } from './useTransactionForm';
 
-const PERIODICIDADES = [
-  { value: 'Mensal', label: 'Mensal', description: 'Sem data fim, até 24 lançamentos' },
-  { value: 'Fixa', label: 'Intervalo personalizado', description: 'A cada N meses' },
-  { value: 'Parcelada', label: 'Parcelada', description: 'Divide em N parcelas, ex.: "Notebook (3/10)"' },
+const PERIODICIDADES: PickerOption[] = [
+  { value: 'Mensal', label: 'Mensal', description: 'Sem data fim, até 24 lançamentos', icon: 'repeat' },
+  { value: 'Fixa', label: 'Intervalo personalizado', description: 'A cada N meses', icon: 'calendar' },
+  { value: 'Parcelada', label: 'Parcelada', description: 'Divide em N parcelas, ex.: "Notebook (3/10)"', icon: 'card' },
 ];
 
 /** "Repetir ou parcelar": periodicidade, intervalo e fim (data ou número de parcelas). */

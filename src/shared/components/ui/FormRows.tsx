@@ -103,6 +103,8 @@ interface SelectRowProps {
   options: PickerOption[];
   /** Pergunta do seletor: "Qual é o tipo de conta?". */
   pickerTitle: string;
+  /** Texto de apoio abaixo do título do seletor. */
+  pickerDescription?: ReactNode;
   placeholder?: string;
   required?: boolean;
   error?: string;
@@ -117,6 +119,7 @@ export function SelectRow({
   onChange,
   options,
   pickerTitle,
+  pickerDescription,
   placeholder = 'Selecione',
   required,
   error,
@@ -151,6 +154,7 @@ export function SelectRow({
       <OptionPicker
         open={open}
         title={pickerTitle}
+        description={pickerDescription}
         options={options}
         value={value}
         onClose={() => setOpen(false)}
