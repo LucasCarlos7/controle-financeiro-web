@@ -1,15 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/ui/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { todayApiDate } from '../../../shared/utils/format';
+import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateGoalMutation, useUpdateGoalMutation } from '../hooks/useGoalMutations';
 import type { Objetivo } from '../types';
-import { Button } from '../../../shared/components/ui/Button';
+import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { FormError } from '../../../shared/components/ui/FormError';
 import { Input } from '../../../shared/components/ui/Input';
-import { Icon } from '../../../shared/components/icons';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -28,6 +27,8 @@ interface GoalFormModalProps {
 
 export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
   const isEditing = Boolean(goal);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateGoalMutation();
   const updateMutation = useUpdateGoalMutation();
   const mutation = isEditing ? updateMutation : createMutation;
@@ -55,44 +56,50 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
   if (!open) return null;
 
   function onSubmit(data: GoalFormOutput) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && goal) {
-      updateMutation.mutate({ id: goal.id, request: data }, { onSuccess: onClose });
+      updateMutation.mutate({ id: goal.id, request: data }, { onSuccess: done('Objetivo atualizado') });
     } else {
-      createMutation.mutate(data, { onSuccess: onClose });
+      createMutation.mutate(data, { onSuccess: done('Objetivo criado') });
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar objetivo' : 'Novo objetivo'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="nome" label="Nome" error={errors.nome?.message} {...register('nome')} />
-
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Editar objetivo' : 'Novo objetivo'}
+      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+    >
+      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input
-          id="valorAlvo"
-          type="number"
-          step="0.01"
-          label="Valor alvo"
-          error={errors.valorAlvo?.message}
-          {...register('valorAlvo')}
+          id="nome"
+          label="Nome"
+          placeholder="Ex.: Reserva de emergência"
+          error={errors.nome?.message}
+          {...register('nome')}
         />
 
-        <Input id="dataAlvo" type="date" label="Data alvo" error={errors.dataAlvo?.message} {...register('dataAlvo')} />
-
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            id="valorAlvo"
+            type="number"
+            step="0.01"
+            inputMode="decimal"
+            prefix="R$"
+            label="Valor alvo"
+            className="tabular-nums"
+            error={errors.valorAlvo?.message}
+            onFocus={(event) => event.target.select()}
+            {...register('valorAlvo')}
+          />
+          <Input id="dataAlvo" type="date" label="Data alvo" error={errors.dataAlvo?.message} {...register('dataAlvo')} />
         </div>
+
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

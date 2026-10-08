@@ -153,7 +153,7 @@ export function BudgetsPage() {
               const categoria = categoriaDe(orcamento.categoriaId);
               const tone = toneOf(orcamento);
               return (
-                <Card as="li" key={orcamento.id}>
+                <Card as="li" key={orcamento.id} className="min-w-0">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-text">
                       <span

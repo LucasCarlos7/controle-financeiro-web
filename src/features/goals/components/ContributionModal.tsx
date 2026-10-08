@@ -1,13 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/ui/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { todayApiDate } from '../../../shared/utils/format';
+import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateContributionMutation } from '../hooks/useGoalMutations';
-import { Button } from '../../../shared/components/ui/Button';
+import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { FormError } from '../../../shared/components/ui/FormError';
 import { Input } from '../../../shared/components/ui/Input';
-import { Icon } from '../../../shared/components/icons';
 
 const formSchema = z.object({
   valor: z.coerce.number().positive('Informe um valor válido'),
@@ -25,6 +25,8 @@ interface ContributionModalProps {
 }
 
 export function ContributionModal({ open, onClose, goalId, goalName }: ContributionModalProps) {
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateContributionMutation();
 
   const {
@@ -45,6 +47,7 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
       {
         onSuccess: () => {
           reset();
+          toast('Aporte registrado');
           onClose();
         },
       },
@@ -52,27 +55,32 @@ export function ContributionModal({ open, onClose, goalId, goalName }: Contribut
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={`Registrar aporte — ${goalName}`}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="valor" type="number" step="0.01" label="Valor" error={errors.valor?.message} {...register('valor')} />
-
-        <Input id="data" type="date" label="Data" error={errors.data?.message} {...register('data')} />
-
-        {createMutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {createMutation.error instanceof ApiError ? createMutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={createMutation.isPending} className="flex-1">
-            {createMutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Registrar aporte"
+      description={goalName}
+      footer={<ModalActions onCancel={onClose} formId={formId} pending={createMutation.isPending} />}
+    >
+      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            id="valor"
+            type="number"
+            step="0.01"
+            inputMode="decimal"
+            prefix="R$"
+            label="Valor"
+            className="tabular-nums"
+            error={errors.valor?.message}
+            onFocus={(event) => event.target.select()}
+            {...register('valor')}
+          />
+          <Input id="data" type="date" label="Data" error={errors.data?.message} {...register('data')} />
         </div>
+        <p className="text-sm text-text-muted">O aporte soma no objetivo; ele não movimenta nenhuma conta.</p>
+
+        <FormError error={createMutation.error} />
       </form>
     </Modal>
   );
