@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { cn } from '../utils/cn';
 
-type Width = 'narrow' | 'default' | 'wide';
+type Width = 'narrow' | 'default' | 'wide' | 'full';
 
 const WIDTH_CLASSES: Record<Width, string> = {
   narrow: 'max-w-narrow',
   default: 'max-w-default',
   wide: 'max-w-wide',
+  full: 'max-w-[110rem]',
 };
 
 interface PageProps {

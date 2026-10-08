@@ -28,7 +28,7 @@ export function AppRoutes() {
           <Route
             path="/dashboard"
             element={
-              <Page width="wide">
+              <Page width="full">
                 <Suspense fallback={<Spinner label="Carregando painel..." />}>
                   <DashboardPage />
                 </Suspense>

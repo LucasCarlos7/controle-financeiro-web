@@ -1,14 +1,22 @@
 import { useMemo, useState } from 'react';
 import { MonthYearPicker } from '../../shared/components/ui/MonthYearPicker';
-import { ErrorState } from '../../shared/components/ui/ErrorState';
 import { EmptyState } from '../../shared/components/ui/EmptyState';
-import { Card, CardHeader } from '../../shared/components/ui/Card';
+import { ErrorState } from '../../shared/components/ui/ErrorState';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { Skeleton } from '../../shared/components/ui/Skeleton';
-import { formatMonthYear, toApiDate } from '../../shared/utils/format';
-import { SummaryCards, SummaryCardsSkeleton } from './components/SummaryCards';
+import { TextLink } from '../../shared/components/ui/TextLink';
+import { toApiDate } from '../../shared/utils/format';
+import { BalanceCard } from './components/BalanceCard';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
+import { DashboardCard } from './components/DashboardCard';
 import { EvolutionLegend, MonthlyEvolutionChart } from './components/MonthlyEvolutionChart';
+import {
+  AccountsCard,
+  BudgetsCard,
+  CreditCardsCard,
+  GoalsCard,
+  LatestTransactionsCard,
+} from './components/OverviewCards';
 import {
   useMonthlyEvolutionQuery,
   useMonthlySummaryQuery,
@@ -19,22 +27,6 @@ function getEvolutionRange(ano: number, mes: number) {
   const end = new Date(ano, mes - 1, 1);
   const start = new Date(ano, mes - 1 - 5, 1);
   return { dataInicio: toApiDate(start), dataFim: toApiDate(end) };
-}
-
-function CategorySkeleton() {
-  return (
-    <div className="space-y-5">
-      {[72, 56, 40, 32, 20].map((width) => (
-        <div key={width}>
-          <div className="flex justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-          <Skeleton className="mt-2 h-1.5" style={{ width: `${width}%` }} />
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export function DashboardPage() {
@@ -50,60 +42,57 @@ export function DashboardPage() {
     <div>
       <PageHeader
         title="Início"
-        description={`Resumo de ${formatMonthYear(periodo.ano, periodo.mes).toLowerCase()}`}
         action={<MonthYearPicker ano={periodo.ano} mes={periodo.mes} onChange={(ano, mes) => setPeriodo({ ano, mes })} />}
       />
 
-      {summaryQuery.isLoading && <SummaryCardsSkeleton />}
-      {summaryQuery.isError && (
-        <div className="mb-4 sm:mb-6">
-          <ErrorState error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />
-        </div>
-      )}
-      {summaryQuery.data && <SummaryCards resumo={summaryQuery.data} />}
+      <div className="gap-4 md:columns-2 2xl:columns-3">
+        <BalanceCard
+          ano={periodo.ano}
+          mes={periodo.mes}
+          resumo={summaryQuery.data}
+          evolucao={evolutionQuery.data}
+          isLoading={summaryQuery.isLoading}
+          error={summaryQuery.error}
+          onRetry={() => summaryQuery.refetch()}
+        />
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-5">
-        <Card as="section" aria-labelledby="evolucao-titulo" className="lg:col-span-3">
-          <CardHeader
-            title={<span id="evolucao-titulo">Evolução mensal</span>}
-            description="Últimos 6 meses"
-            className="flex-wrap"
-            action={evolutionQuery.data && evolutionQuery.data.length > 0 ? <EvolutionLegend /> : undefined}
-          />
-          {evolutionQuery.isLoading && <Skeleton className="h-[280px]" />}
-          {evolutionQuery.isError && (
-            <ErrorState variant="compact" error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
-          )}
-          {evolutionQuery.data && evolutionQuery.data.length === 0 && (
-            <EmptyState
-              variant="compact"
-              icon="pie"
-              title="Sem histórico ainda"
-              description="A evolução aparece quando houver lançamentos nos últimos meses."
-            />
-          )}
-          {evolutionQuery.data && evolutionQuery.data.length > 0 && <MonthlyEvolutionChart data={evolutionQuery.data} />}
-        </Card>
-
-        <Card as="section" aria-labelledby="categorias-titulo" className="lg:col-span-2">
-          <CardHeader
-            title={<span id="categorias-titulo">Gastos por categoria</span>}
-            description="Despesas pagas no mês"
-          />
-          {categoryQuery.isLoading && <CategorySkeleton />}
+        <DashboardCard title="Gastos por categoria" action={<TextLink to="/orcamentos">Definir limites</TextLink>}>
+          {categoryQuery.isLoading && <Skeleton className="mx-auto h-44 w-44 rounded-full" />}
           {categoryQuery.isError && (
             <ErrorState variant="compact" error={categoryQuery.error} onRetry={() => categoryQuery.refetch()} />
           )}
           {categoryQuery.data && categoryQuery.data.length === 0 && (
             <EmptyState
               variant="compact"
-              icon="tag"
+              icon="pie"
               title="Sem despesas neste mês"
-              description="Registre lançamentos para ver o detalhamento por categoria."
+              description="Registre seus gastos e comece a ter visibilidade das suas finanças."
             />
           )}
           {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
-        </Card>
+        </DashboardCard>
+
+        <LatestTransactionsCard />
+        <AccountsCard />
+        <CreditCardsCard />
+        <BudgetsCard ano={periodo.ano} mes={periodo.mes} />
+
+        <DashboardCard title="Receitas e despesas" action={<TextLink to="/extrato">Ver extrato</TextLink>}>
+          {evolutionQuery.isLoading && <Skeleton className="h-[280px]" />}
+          {evolutionQuery.isError && (
+            <ErrorState variant="compact" error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
+          )}
+          {evolutionQuery.data && evolutionQuery.data.length > 0 && (
+            <>
+              <EvolutionLegend />
+              <div className="mt-3">
+                <MonthlyEvolutionChart data={evolutionQuery.data} />
+              </div>
+            </>
+          )}
+        </DashboardCard>
+
+        <GoalsCard />
       </div>
     </div>
   );

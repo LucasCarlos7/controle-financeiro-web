@@ -44,7 +44,7 @@ export function Amount({ value, kind = 'plain', neutral = false, showSign = true
   if (hidden) {
     return (
       <span className={cn('whitespace-nowrap tabular-nums', color, className)} aria-label="Valor oculto">
-        {split ? <span className="mr-0.5 text-[0.55em] font-medium opacity-80">R$</span> : 'R$ '}
+        {split ? <span className="mr-0.5 text-[max(0.6em,0.6875rem)] font-medium">R$</span> : 'R$ '}
         ••••
       </span>
     );
@@ -61,11 +61,11 @@ export function Amount({ value, kind = 'plain', neutral = false, showSign = true
       className={cn('whitespace-nowrap tabular-nums', color, className)}
       aria-label={`${sign}${formatCurrency(Math.abs(value))}`}
     >
-      <span aria-hidden="true" className="mr-1 text-[0.55em] font-medium opacity-80">
+      <span aria-hidden="true" className="mr-1 text-[max(0.6em,0.6875rem)] font-medium">
         {sign}R$
       </span>
       <span aria-hidden="true">{inteiro}</span>
-      <span aria-hidden="true" className="text-[0.6em] font-medium">
+      <span aria-hidden="true" className="text-[max(0.6em,0.6875rem)] font-medium">
         ,{centavos}
       </span>
     </span>
