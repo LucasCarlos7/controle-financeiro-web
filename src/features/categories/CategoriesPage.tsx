@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { Tabs } from '../../shared/components/Tabs';
-import { Spinner } from '../../shared/components/Spinner';
-import { ErrorState } from '../../shared/components/ErrorState';
-import { EmptyState } from '../../shared/components/EmptyState';
+import { Tabs } from '../../shared/components/ui/Tabs';
+import { Spinner } from '../../shared/components/ui/Spinner';
+import { ErrorState } from '../../shared/components/ui/ErrorState';
+import { EmptyState } from '../../shared/components/ui/EmptyState';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { Button } from '../../shared/components/ui/Button';
 import { Icon } from '../../shared/components/icons';
@@ -175,6 +175,7 @@ export function CategoriesPage() {
     <div>
       <PageHeader title="Categorias" />
       <Tabs
+        label="Categorias e tags"
         tabs={[
           { value: 'categorias', label: 'Categorias' },
           { value: 'tags', label: 'Tags' },

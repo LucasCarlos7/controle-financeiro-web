@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { Conta, TipoConta } from '../types';
 import { useCreateAccountMutation, useUpdateAccountMutation } from '../hooks/useAccountMutations';
 import { ApiError } from '../../../shared/types/api';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
 import { Select } from '../../../shared/components/ui/Select';

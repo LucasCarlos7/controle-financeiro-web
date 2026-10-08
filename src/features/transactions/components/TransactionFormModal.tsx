@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { ApiError } from '../../../shared/types/api';
 import { todayApiDate } from '../../../shared/utils/format';
 import { useAccountsQuery } from '../../accounts/hooks/useAccountsQuery';

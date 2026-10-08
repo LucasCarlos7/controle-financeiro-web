@@ -9,7 +9,7 @@ import { BudgetsPage } from '../features/budgets/BudgetsPage';
 import { GoalsPage } from '../features/goals/GoalsPage';
 import { ProtectedRoute } from '../shared/components/ProtectedRoute';
 import { AppShell } from '../shared/layout/AppShell';
-import { Spinner } from '../shared/components/Spinner';
+import { Spinner } from '../shared/components/ui/Spinner';
 
 const DashboardPage = lazy(() =>
   import('../features/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })),

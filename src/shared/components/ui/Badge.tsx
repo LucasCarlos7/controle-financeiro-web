@@ -1,23 +1,28 @@
 import type { HTMLAttributes } from 'react';
+import { cn } from '../../utils/cn';
 
-type Tone = 'success' | 'warning' | 'danger' | 'neutral' | 'brand';
+type Tone = 'success' | 'warning' | 'danger' | 'neutral' | 'primary';
 
 const TONE_CLASSES: Record<Tone, string> = {
-  success: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
-  warning: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
-  danger: 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400',
-  neutral: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  brand: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400',
+  success: 'bg-success-soft text-success',
+  warning: 'bg-warning-soft text-warning',
+  danger: 'bg-danger-soft text-danger',
+  neutral: 'bg-surface-sunken text-text-muted ring-1 ring-inset ring-border',
+  primary: 'bg-primary-soft text-primary-text',
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: Tone;
 }
 
-export function Badge({ tone = 'neutral', className = '', ...props }: BadgeProps) {
+export function Badge({ tone = 'neutral', className, ...props }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE_CLASSES[tone]} ${className}`}
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+        TONE_CLASSES[tone],
+        className,
+      )}
       {...props}
     />
   );

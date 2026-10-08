@@ -5,10 +5,10 @@ import { useCardsQuery } from './hooks/useCardsQuery';
 import { useDeactivateCardMutation, useReactivateCardMutation } from './hooks/useCardMutations';
 import { AccountFormModal } from './components/AccountFormModal';
 import { CardFormModal } from './components/CardFormModal';
-import { Spinner } from '../../shared/components/Spinner';
-import { ErrorState } from '../../shared/components/ErrorState';
-import { EmptyState } from '../../shared/components/EmptyState';
-import { Tabs } from '../../shared/components/Tabs';
+import { Spinner } from '../../shared/components/ui/Spinner';
+import { ErrorState } from '../../shared/components/ui/ErrorState';
+import { EmptyState } from '../../shared/components/ui/EmptyState';
+import { Tabs } from '../../shared/components/ui/Tabs';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { Button } from '../../shared/components/ui/Button';
 import { Icon } from '../../shared/components/icons';
@@ -208,6 +208,7 @@ export function AccountsPage() {
     <div>
       <PageHeader title="Contas e Cartões" />
       <Tabs
+        label="Contas e cartões"
         tabs={[
           { value: 'contas', label: 'Contas' },
           { value: 'cartoes', label: 'Cartões' },

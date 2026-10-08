@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { MonthYearPicker } from '../../shared/components/MonthYearPicker';
-import { Spinner } from '../../shared/components/Spinner';
-import { ErrorState } from '../../shared/components/ErrorState';
-import { EmptyState } from '../../shared/components/EmptyState';
+import { MonthYearPicker } from '../../shared/components/ui/MonthYearPicker';
+import { Spinner } from '../../shared/components/ui/Spinner';
+import { ErrorState } from '../../shared/components/ui/ErrorState';
+import { EmptyState } from '../../shared/components/ui/EmptyState';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { toApiDate } from '../../shared/utils/format';
 import { SummaryCards } from './components/SummaryCards';

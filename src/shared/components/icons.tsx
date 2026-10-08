@@ -19,7 +19,17 @@ export type IconName =
   | 'alert'
   | 'flag'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'more'
+  | 'arrow-down-left'
+  | 'arrow-up-right'
+  | 'swap'
+  | 'card'
+  | 'repeat'
+  | 'sliders'
+  | 'grid'
+  | 'chevron-down'
+  | 'clock';
 
 const SHAPES: Record<IconName, React.ReactNode> = {
   home: (
@@ -133,6 +143,71 @@ const SHAPES: Record<IconName, React.ReactNode> = {
     </>
   ),
   moon: <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z" />,
+  more: (
+    <>
+      <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  'arrow-down-left': (
+    <>
+      <line x1="17" y1="7" x2="7" y2="17" />
+      <polyline points="16,17 7,17 7,8" />
+    </>
+  ),
+  'arrow-up-right': (
+    <>
+      <line x1="7" y1="17" x2="17" y2="7" />
+      <polyline points="8,7 17,7 17,16" />
+    </>
+  ),
+  swap: (
+    <>
+      <polyline points="16,4 20,8 16,12" />
+      <line x1="20" y1="8" x2="6" y2="8" />
+      <polyline points="8,12 4,16 8,20" />
+      <line x1="4" y1="16" x2="18" y2="16" />
+    </>
+  ),
+  card: (
+    <>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <line x1="7" y1="15" x2="10" y2="15" />
+    </>
+  ),
+  repeat: (
+    <>
+      <polyline points="17,3 20,6 17,9" />
+      <path d="M4 11V9a3 3 0 0 1 3-3h13" />
+      <polyline points="7,21 4,18 7,15" />
+      <path d="M20 13v2a3 3 0 0 1-3 3H4" />
+    </>
+  ),
+  sliders: (
+    <>
+      <line x1="4" y1="7" x2="20" y2="7" />
+      <line x1="4" y1="17" x2="20" y2="17" />
+      <circle cx="9" cy="7" r="2.2" fill="var(--color-surface)" />
+      <circle cx="15" cy="17" r="2.2" fill="var(--color-surface)" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+    </>
+  ),
+  'chevron-down': <polyline points="6,9 12,15 18,9" />,
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <polyline points="12,7.5 12,12 15,14" />
+    </>
+  ),
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {

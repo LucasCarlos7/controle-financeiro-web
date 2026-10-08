@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { ApiError } from '../../../shared/types/api';
 import { useCreateCategoryMutation, useUpdateCategoryMutation } from '../hooks/useCategoryMutations';
 import type { Categoria } from '../types';
