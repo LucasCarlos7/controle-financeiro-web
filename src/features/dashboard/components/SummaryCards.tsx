@@ -1,47 +1,64 @@
-import { formatCurrency } from '../../../shared/utils/format';
-import { Icon } from '../../../shared/components/icons';
+import { Card } from '../../../shared/components/ui/Card';
+import { Amount } from '../../../shared/components/ui/Amount';
+import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { StatCard } from '../../../shared/components/ui/StatCard';
+import { formatPercent } from '../../../shared/utils/format';
 import type { ResumoMensal } from '../types';
 
+/** Saldo do mês em destaque, com receitas e despesas como apoio. */
 export function SummaryCards({ resumo }: { resumo: ResumoMensal }) {
-  const saldoPositivo = resumo.saldo >= 0;
+  const despesasSobreReceitas = resumo.receitas > 0 ? (resumo.despesas / resumo.receitas) * 100 : null;
 
   return (
-    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03] dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
-            <Icon name="plus" className="h-3.5 w-3.5" />
-          </span>
-          <p className="text-xs font-medium">Receitas</p>
+    <Card padding="none" as="section" aria-label="Resumo do mês" className="mb-4 sm:mb-6">
+      <div className="grid divide-y divide-border lg:grid-cols-[1.4fr_1fr_1fr] lg:divide-x lg:divide-y-0">
+        <div className="p-5 sm:p-6">
+          <p className="text-base font-medium text-text-muted">Saldo do mês</p>
+          <p className="mt-2 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+            <Amount value={resumo.saldo} kind="balance" />
+          </p>
+          <p className="mt-1.5 text-sm text-text-muted">Receitas menos despesas pagas no período</p>
         </div>
-        <p className="mt-2 text-xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-          {formatCurrency(resumo.receitas)}
-        </p>
-      </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03] dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400">
-            <Icon name="tag" className="h-3.5 w-3.5" />
-          </span>
-          <p className="text-xs font-medium">Despesas</p>
+        <div className="grid grid-cols-2 divide-x divide-border lg:contents">
+          <StatCard
+            className="p-5 sm:p-6"
+            label="Receitas"
+            icon="arrow-down-left"
+            tone="income"
+            value={<Amount value={resumo.receitas} className={resumo.receitas ? 'text-income' : undefined} />}
+          />
+          <StatCard
+            className="p-5 sm:p-6"
+            label="Despesas"
+            icon="arrow-up-right"
+            tone="expense"
+            value={<Amount value={resumo.despesas} className={resumo.despesas ? 'text-expense' : undefined} />}
+            hint={despesasSobreReceitas !== null ? `${formatPercent(despesasSobreReceitas)} das receitas` : undefined}
+          />
         </div>
-        <p className="mt-2 text-xl font-semibold tracking-tight text-red-600 dark:text-red-400">
-          {formatCurrency(resumo.despesas)}
-        </p>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/[0.03] dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400">
-            <Icon name="wallet" className="h-3.5 w-3.5" />
-          </span>
-          <p className="text-xs font-medium">Saldo</p>
+    </Card>
+  );
+}
+
+export function SummaryCardsSkeleton() {
+  return (
+    <Card padding="none" className="mb-4 sm:mb-6">
+      <div className="grid divide-y divide-border lg:grid-cols-[1.4fr_1fr_1fr] lg:divide-x lg:divide-y-0">
+        <div className="p-5 sm:p-6">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="mt-3 h-10 w-48" />
+          <Skeleton className="mt-2.5 h-3.5 w-56" />
         </div>
-        <p
-          className={`mt-2 text-xl font-semibold tracking-tight ${saldoPositivo ? 'text-slate-900 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}`}
-        >
-          {formatCurrency(resumo.saldo)}
-        </p>
+        <div className="grid grid-cols-2 divide-x divide-border lg:contents">
+          {[0, 1].map((key) => (
+            <div key={key} className="p-5 sm:p-6">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="mt-3 h-7 w-32" />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }

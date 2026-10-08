@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { MonthYearPicker } from '../../shared/components/ui/MonthYearPicker';
-import { Spinner } from '../../shared/components/ui/Spinner';
 import { ErrorState } from '../../shared/components/ui/ErrorState';
 import { EmptyState } from '../../shared/components/ui/EmptyState';
+import { Card, CardHeader } from '../../shared/components/ui/Card';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
-import { toApiDate } from '../../shared/utils/format';
-import { SummaryCards } from './components/SummaryCards';
+import { Skeleton } from '../../shared/components/ui/Skeleton';
+import { formatMonthYear, toApiDate } from '../../shared/utils/format';
+import { SummaryCards, SummaryCardsSkeleton } from './components/SummaryCards';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
-import { MonthlyEvolutionChart } from './components/MonthlyEvolutionChart';
+import { EvolutionLegend, MonthlyEvolutionChart } from './components/MonthlyEvolutionChart';
 import {
   useMonthlyEvolutionQuery,
   useMonthlySummaryQuery,
@@ -18,6 +19,22 @@ function getEvolutionRange(ano: number, mes: number) {
   const end = new Date(ano, mes - 1, 1);
   const start = new Date(ano, mes - 1 - 5, 1);
   return { dataInicio: toApiDate(start), dataFim: toApiDate(end) };
+}
+
+function CategorySkeleton() {
+  return (
+    <div className="space-y-5">
+      {[72, 56, 40, 32, 20].map((width) => (
+        <div key={width}>
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <Skeleton className="mt-2 h-1.5" style={{ width: `${width}%` }} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function DashboardPage() {
@@ -31,31 +48,62 @@ export function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Início" description="Resumo financeiro do período selecionado" />
-      <MonthYearPicker ano={periodo.ano} mes={periodo.mes} onChange={(ano, mes) => setPeriodo({ ano, mes })} />
+      <PageHeader
+        title="Início"
+        description={`Resumo de ${formatMonthYear(periodo.ano, periodo.mes).toLowerCase()}`}
+        action={<MonthYearPicker ano={periodo.ano} mes={periodo.mes} onChange={(ano, mes) => setPeriodo({ ano, mes })} />}
+      />
 
-      {summaryQuery.isLoading && <Spinner label="Carregando resumo..." />}
-      {summaryQuery.isError && <ErrorState error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />}
+      {summaryQuery.isLoading && <SummaryCardsSkeleton />}
+      {summaryQuery.isError && (
+        <div className="mb-4 sm:mb-6">
+          <ErrorState error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />
+        </div>
+      )}
       {summaryQuery.data && <SummaryCards resumo={summaryQuery.data} />}
 
-      <div className="space-y-4">
-        {categoryQuery.isLoading && <Spinner label="Carregando gastos por categoria..." />}
-        {categoryQuery.isError && (
-          <ErrorState error={categoryQuery.error} onRetry={() => categoryQuery.refetch()} />
-        )}
-        {categoryQuery.data && categoryQuery.data.length === 0 && (
-          <EmptyState
-            title="Sem despesas neste mês"
-            description="Registre lançamentos para ver o detalhamento por categoria."
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-5">
+        <Card as="section" aria-labelledby="evolucao-titulo" className="lg:col-span-3">
+          <CardHeader
+            title={<span id="evolucao-titulo">Evolução mensal</span>}
+            description="Últimos 6 meses"
+            className="flex-wrap"
+            action={evolutionQuery.data && evolutionQuery.data.length > 0 ? <EvolutionLegend /> : undefined}
           />
-        )}
-        {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
+          {evolutionQuery.isLoading && <Skeleton className="h-[280px]" />}
+          {evolutionQuery.isError && (
+            <ErrorState variant="compact" error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
+          )}
+          {evolutionQuery.data && evolutionQuery.data.length === 0 && (
+            <EmptyState
+              variant="compact"
+              icon="pie"
+              title="Sem histórico ainda"
+              description="A evolução aparece quando houver lançamentos nos últimos meses."
+            />
+          )}
+          {evolutionQuery.data && evolutionQuery.data.length > 0 && <MonthlyEvolutionChart data={evolutionQuery.data} />}
+        </Card>
 
-        {evolutionQuery.isLoading && <Spinner label="Carregando evolução mensal..." />}
-        {evolutionQuery.isError && (
-          <ErrorState error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
-        )}
-        {evolutionQuery.data && evolutionQuery.data.length > 0 && <MonthlyEvolutionChart data={evolutionQuery.data} />}
+        <Card as="section" aria-labelledby="categorias-titulo" className="lg:col-span-2">
+          <CardHeader
+            title={<span id="categorias-titulo">Gastos por categoria</span>}
+            description="Despesas pagas no mês"
+          />
+          {categoryQuery.isLoading && <CategorySkeleton />}
+          {categoryQuery.isError && (
+            <ErrorState variant="compact" error={categoryQuery.error} onRetry={() => categoryQuery.refetch()} />
+          )}
+          {categoryQuery.data && categoryQuery.data.length === 0 && (
+            <EmptyState
+              variant="compact"
+              icon="tag"
+              title="Sem despesas neste mês"
+              description="Registre lançamentos para ver o detalhamento por categoria."
+            />
+          )}
+          {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
+        </Card>
       </div>
     </div>
   );
