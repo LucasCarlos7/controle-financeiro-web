@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/ui/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { useCategoriesQuery } from '../../categories/hooks/useCategoriesQuery';
 import { useCreateBudgetMutation, useUpdateBudgetMutation } from '../hooks/useBudgetMutations';
 import type { Orcamento } from '../types';
-import { Button } from '../../../shared/components/ui/Button';
+import { useToast } from '../../../shared/hooks/useFeedback';
+import { Modal, ModalActions } from '../../../shared/components/ui/Modal';
+import { FormError } from '../../../shared/components/ui/FormError';
 import { Input } from '../../../shared/components/ui/Input';
 import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
+import { formatMonthYear } from '../../../shared/utils/format';
 
 const formSchema = z.object({
   categoriaId: z.string().min(1, 'Selecione a categoria'),
@@ -30,11 +30,14 @@ interface BudgetFormModalProps {
 
 export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormModalProps) {
   const isEditing = Boolean(budget);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateBudgetMutation();
   const updateMutation = useUpdateBudgetMutation();
   const mutation = isEditing ? updateMutation : createMutation;
   const { data: categories } = useCategoriesQuery();
   const despesaCategories = (categories ?? []).filter((categoria) => categoria.tipo === 'Despesa');
+  const categoriaNome = categories?.find((categoria) => categoria.id === budget?.categoriaId)?.nome;
 
   const {
     register,
@@ -61,21 +64,44 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
   if (!open) return null;
 
   function onSubmit(data: BudgetFormOutput) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && budget) {
-      updateMutation.mutate({ id: budget.id, request: { limiteValor: data.limiteValor } }, { onSuccess: onClose });
+      updateMutation.mutate(
+        { id: budget.id, request: { limiteValor: data.limiteValor } },
+        { onSuccess: done('Orçamento atualizado') },
+      );
     } else {
       createMutation.mutate(
         { categoriaId: data.categoriaId, ano, mes, limiteValor: data.limiteValor },
-        { onSuccess: onClose },
+        { onSuccess: done('Orçamento criado') },
       );
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar orçamento' : 'Novo orçamento'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditing ? 'Editar orçamento' : 'Novo orçamento'}
+      description={
+        isEditing
+          ? `${categoriaNome ?? 'Categoria'} · ${formatMonthYear(ano, mes)}`
+          : `Limite de gasto para ${formatMonthYear(ano, mes).toLowerCase()}`
+      }
+      footer={<ModalActions onCancel={onClose} formId={formId} pending={mutation.isPending} />}
+    >
+      <form id={formId} className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         {!isEditing && (
-          <Select id="categoriaId" label="Categoria" error={errors.categoriaId?.message} {...register('categoriaId')}>
+          <Select
+            id="categoriaId"
+            label="Categoria"
+            hint="Só categorias de despesa."
+            error={errors.categoriaId?.message}
+            {...register('categoriaId')}
+          >
             <option value="">Selecione</option>
             {despesaCategories.map((categoria) => (
               <option key={categoria.id} value={categoria.id}>
@@ -89,26 +115,16 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
           id="limiteValor"
           type="number"
           step="0.01"
+          inputMode="decimal"
+          prefix="R$"
           label="Limite"
+          className="tabular-nums"
           error={errors.limiteValor?.message}
+          onFocus={(event) => event.target.select()}
           {...register('limiteValor')}
         />
 
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

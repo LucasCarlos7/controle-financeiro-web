@@ -5,7 +5,7 @@ type Tone = 'primary' | 'success' | 'warning' | 'danger';
 const TONE_CLASSES: Record<Tone, string> = {
   primary: 'bg-primary',
   success: 'bg-success',
-  warning: 'bg-warning',
+  warning: 'bg-warning-fill',
   danger: 'bg-danger',
 };
 
