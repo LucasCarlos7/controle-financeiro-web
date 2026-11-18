@@ -1,35 +1,42 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Modal } from '../../../shared/components/Modal';
-import { ApiError } from '../../../shared/types/api';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Button } from '../../../shared/components/ui/Button';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
+import { FormError } from '../../../shared/components/ui/FormError';
+import { useToast } from '../../../shared/hooks/useFeedback';
 import { todayApiDate } from '../../../shared/utils/format';
-import { useAccountsQuery } from '../../accounts/hooks/useAccountsQuery';
-import { useCardsQuery } from '../../accounts/hooks/useCardsQuery';
-import { useCategoriesQuery } from '../../categories/hooks/useCategoriesQuery';
-import { useTagsQuery } from '../../categories/hooks/useTagsQuery';
 import {
   useCreateRecurringTransactionMutation,
   useCreateTransactionMutation,
   useUpdateTransactionMutation,
 } from '../hooks/useTransactionMutations';
-import type { Transacao } from '../types';
+import type { EscopoEdicaoRecorrencia, Transacao } from '../types';
 import {
   createTransactionFormSchema,
   resolverOrigem,
-  type FormaPagamento,
   type TransactionFormInput,
   type TransactionFormOutput,
 } from '../transactionFormSchema';
-import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
+import { TransactionTypeField } from './form/TransactionTypeField';
+import { PaymentSection } from './form/PaymentSection';
+import { ClassificationSection } from './form/ClassificationSection';
+import { RecurrenceSection } from './form/RecurrenceSection';
+import { EditScopeModal } from './EditScopeModal';
 
-const FORMAS_PAGAMENTO: { value: FormaPagamento; label: string }[] = [
-  { value: 'conta', label: 'Conta' },
-  { value: 'cartao', label: 'Cartão de crédito' },
-];
+const SUBMIT_LABELS = {
+  Despesa: 'Registrar despesa',
+  Receita: 'Registrar receita',
+  Transferencia: 'Registrar transferência',
+} as const;
+
+const AMOUNT_TONES = {
+  Despesa: 'expense',
+  Receita: 'income',
+  Transferencia: 'neutral',
+} as const;
 
 interface TransactionFormModalProps {
   open: boolean;
@@ -39,26 +46,19 @@ interface TransactionFormModalProps {
 
 export function TransactionFormModal({ open, onClose, transaction }: TransactionFormModalProps) {
   const isEditing = Boolean(transaction);
+  const isRecorrente = isEditing && Boolean(transaction?.recorrenciaId);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateTransactionMutation();
   const createRecurringMutation = useCreateRecurringTransactionMutation();
   const updateMutation = useUpdateTransactionMutation();
 
-  const { data: accounts } = useAccountsQuery(true);
-  const { data: cards } = useCardsQuery(true);
-  const { data: categories } = useCategoriesQuery();
-  const { data: tags } = useTagsQuery();
+  const [scopeModalOpen, setScopeModalOpen] = useState(false);
+  const pendingPayload = useRef<Parameters<typeof updateMutation.mutate>[0] | null>(null);
 
   const formSchema = useMemo(() => createTransactionFormSchema(isEditing), [isEditing]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<TransactionFormInput, unknown, TransactionFormOutput>({
+  const form = useForm<TransactionFormInput, unknown, TransactionFormOutput>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tipo: 'Despesa',
@@ -80,6 +80,14 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
       dataFim: '',
     },
   });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    control,
+    formState: { errors },
+  } = form;
 
   useEffect(() => {
     if (open) {
@@ -106,40 +114,54 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
   }, [open, transaction, reset]);
 
   const tipo = watch('tipo');
-  const categoriaId = watch('categoriaId');
   const recorrente = watch('recorrente');
-  const tipoRecorrencia = watch('tipoRecorrencia');
-  const formaPagamento = watch('formaPagamento');
   const isTransferencia = tipo === 'Transferencia';
-  const pagaComCartao = tipo === 'Despesa' && formaPagamento === 'cartao';
-
-  const categoriasDoTipo = useMemo(
-    () => (categories ?? []).filter((categoria) => categoria.tipo === tipo),
-    [categories, tipo],
-  );
-  const subcategorias = useMemo(
-    () => categoriasDoTipo.find((categoria) => categoria.id === categoriaId)?.subcategorias ?? [],
-    [categoriasDoTipo, categoriaId],
-  );
 
   if (!open) return null;
 
+  function closeWith(message: string) {
+    return () => {
+      toast(message);
+      onClose();
+    };
+  }
+
+  function handleScopeConfirm(escopo: EscopoEdicaoRecorrencia) {
+    if (!pendingPayload.current) return;
+    const payload = {
+      ...pendingPayload.current,
+      request: { ...pendingPayload.current.request, escopoEdicao: escopo },
+    };
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setScopeModalOpen(false);
+        pendingPayload.current = null;
+        closeWith('Lançamento atualizado')();
+      },
+    });
+  }
+
   function onSubmit(data: TransactionFormOutput) {
     if (isEditing && transaction) {
-      updateMutation.mutate(
-        {
-          id: transaction.id,
-          request: {
-            valor: data.valor,
-            data: data.data,
-            descricao: data.descricao,
-            categoriaId: data.categoriaId || null,
-            subcategoriaId: data.subcategoriaId || null,
-            tagIds: data.tagIds ?? [],
-          },
+      const basePayload = {
+        id: transaction.id,
+        request: {
+          valor: data.valor,
+          data: data.data,
+          descricao: data.descricao,
+          categoriaId: data.categoriaId || null,
+          subcategoriaId: data.subcategoriaId || null,
+          tagIds: data.tagIds ?? [],
         },
-        { onSuccess: onClose },
-      );
+      };
+
+      if (isRecorrente) {
+        pendingPayload.current = basePayload;
+        setScopeModalOpen(true);
+        return;
+      }
+
+      updateMutation.mutate(basePayload, { onSuccess: closeWith('Lançamento atualizado') });
       return;
     }
 
@@ -166,7 +188,7 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
           totalParcelas: data.tipoRecorrencia === 'Parcelada' ? data.totalParcelas || null : null,
           dataFim: data.tipoRecorrencia === 'Parcelada' ? null : data.dataFim || null,
         },
-        { onSuccess: onClose },
+        { onSuccess: closeWith('Lançamentos recorrentes criados') },
       );
       return;
     }
@@ -185,291 +207,67 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
         status: data.status,
         tagIds,
       },
-      { onSuccess: onClose },
+      { onSuccess: closeWith('Lançamento criado') },
     );
   }
 
   const mutation = isEditing ? updateMutation : recorrente ? createRecurringMutation : createMutation;
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar lançamento' : 'Novo lançamento'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        {!isEditing && (
-          <Select id="tipo" label="Tipo" {...register('tipo')}>
-            <option value="Despesa">Despesa</option>
-            <option value="Receita">Receita</option>
-            <option value="Transferencia">Transferência</option>
-          </Select>
-        )}
+    <>
+    <EditScopeModal
+      open={scopeModalOpen}
+      pending={updateMutation.isPending}
+      onConfirm={handleScopeConfirm}
+      onClose={() => setScopeModalOpen(false)}
+    />
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="sheet"
+      title={isEditing ? 'Editar lançamento' : 'Novo lançamento'}
+      description={isEditing ? 'Tipo, origem e recorrência não podem ser alterados.' : undefined}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg sm:h-12">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : SUBMIT_LABELS[tipo]}
+        </Button>
+      }
+    >
+      <FormProvider {...form}>
+        <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+          {!isEditing && <TransactionTypeField />}
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <Input
-              id="valor"
-              type="number"
-              step="0.01"
-              label="Valor"
-              error={errors.valor?.message}
-              {...register('valor')}
+          <AmountInputField
+            control={control}
+            name="valor"
+            id="valor"
+            tone={AMOUNT_TONES[tipo]}
+            error={errors.valor?.message}
+          />
+
+          <FormSection label="Detalhes">
+            <TextRow
+              id="descricao"
+              icon="text"
+              label="Descrição"
+              placeholder="Ex.: Mercado"
+              required
+              error={errors.descricao?.message}
+              {...register('descricao')}
             />
-          </div>
-          <div className="flex-1">
-            <Input id="data" type="date" label="Data" error={errors.data?.message} {...register('data')} />
-          </div>
-        </div>
+            <TextRow id="data" icon="calendar" label="Data" type="date" required error={errors.data?.message} {...register('data')} />
+          </FormSection>
 
-        <Input id="descricao" label="Descrição" error={errors.descricao?.message} {...register('descricao')} />
+          {!isEditing && <PaymentSection showStatus={!recorrente} />}
 
-        {!isEditing && (
-          <>
-            {tipo === 'Despesa' && (
-              <div>
-                <p className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Pagar com</p>
-                <Controller
-                  control={control}
-                  name="formaPagamento"
-                  render={({ field }) => (
-                    <div
-                      role="radiogroup"
-                      aria-label="Pagar com"
-                      className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800"
-                    >
-                      {FORMAS_PAGAMENTO.map((opcao) => {
-                        const selected = field.value === opcao.value;
-                        return (
-                          <button
-                            key={opcao.value}
-                            type="button"
-                            role="radio"
-                            aria-checked={selected}
-                            onClick={() => {
-                              field.onChange(opcao.value);
-                              // Compra no cartão normalmente ainda não foi paga: Pendente ocupa o limite até a fatura.
-                              setValue('status', opcao.value === 'cartao' ? 'Pendente' : 'Pago');
-                            }}
-                            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                              selected
-                                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                          >
-                            {opcao.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                />
-              </div>
-            )}
+          {!isTransferencia && <ClassificationSection />}
 
-            {pagaComCartao ? (
-              <Select
-                id="cartaoCreditoId"
-                label="Cartão de crédito"
-                error={errors.cartaoCreditoId?.message}
-                {...register('cartaoCreditoId')}
-              >
-                <option value="">Selecione</option>
-                {(cards ?? []).map((cartao) => (
-                  <option key={cartao.id} value={cartao.id}>
-                    {cartao.nome}
-                  </option>
-                ))}
-              </Select>
-            ) : (
-              <Select
-                id="contaId"
-                label={isTransferencia ? 'Conta de origem' : 'Conta'}
-                error={errors.contaId?.message}
-                {...register('contaId')}
-              >
-                <option value="">Selecione</option>
-                {(accounts ?? []).map((conta) => (
-                  <option key={conta.id} value={conta.id}>
-                    {conta.nome}
-                  </option>
-                ))}
-              </Select>
-            )}
+          {!isEditing && <RecurrenceSection />}
 
-            {isTransferencia && (
-              <Select
-                id="contaDestinoId"
-                label="Conta de destino"
-                error={errors.contaDestinoId?.message}
-                {...register('contaDestinoId')}
-              >
-                <option value="">Selecione</option>
-                {(accounts ?? []).map((conta) => (
-                  <option key={conta.id} value={conta.id}>
-                    {conta.nome}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </>
-        )}
-
-        {!isTransferencia && (
-          <>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Select id="categoriaId" label="Categoria" {...register('categoriaId')}>
-                  <option value="">Nenhuma</option>
-                  {categoriasDoTipo.map((categoria) => (
-                    <option key={categoria.id} value={categoria.id}>
-                      {categoria.nome}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              {subcategorias.length > 0 && (
-                <div className="flex-1">
-                  <Select id="subcategoriaId" label="Subcategoria" {...register('subcategoriaId')}>
-                    <option value="">Nenhuma</option>
-                    {subcategorias.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.nome}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <p className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Tags</p>
-              <Controller
-                control={control}
-                name="tagIds"
-                render={({ field }) => (
-                  <div className="flex flex-wrap gap-2">
-                    {(tags ?? []).map((tag) => {
-                      const selected = (field.value ?? []).includes(tag.id);
-                      return (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => {
-                            const current = field.value ?? [];
-                            field.onChange(
-                              selected ? current.filter((id) => id !== tag.id) : [...current, tag.id],
-                            );
-                          }}
-                          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                            selected
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                          }`}
-                        >
-                          {tag.nome}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              />
-            </div>
-          </>
-        )}
-
-        {!isEditing && !recorrente && (
-          <div>
-            <Select id="status" label="Status" {...register('status')}>
-              <option value="Pago">Pago</option>
-              <option value="Pendente">Pendente</option>
-            </Select>
-            {pagaComCartao && (
-              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                No cartão, a compra pendente ocupa o limite. Marque como paga quando a fatura for paga.
-              </p>
-            )}
-          </div>
-        )}
-
-        {!isEditing && (
-          <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-900"
-                {...register('recorrente')}
-              />
-              Repetir ou parcelar este lançamento
-            </label>
-
-            {recorrente && (
-              <div className="mt-3 space-y-3">
-                <Select
-                  id="tipoRecorrencia"
-                  label="Periodicidade"
-                  error={errors.tipoRecorrencia?.message}
-                  {...register('tipoRecorrencia')}
-                >
-                  <option value="Mensal">Mensal (sem data fim, até 24 lançamentos)</option>
-                  <option value="Fixa">Recorrente com intervalo customizado</option>
-                  <option value="Parcelada">Parcelada</option>
-                </Select>
-
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <Input
-                      id="intervaloMeses"
-                      type="number"
-                      min={1}
-                      max={12}
-                      label="Intervalo (meses)"
-                      error={errors.intervaloMeses?.message}
-                      {...register('intervaloMeses')}
-                    />
-                  </div>
-
-                  {tipoRecorrencia === 'Parcelada' ? (
-                    <div className="flex-1">
-                      <Input
-                        id="totalParcelas"
-                        type="number"
-                        min={1}
-                        max={120}
-                        label="Total de parcelas"
-                        error={errors.totalParcelas?.message}
-                        {...register('totalParcelas')}
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex-1">
-                      <Input
-                        id="dataFim"
-                        type="date"
-                        label="Repetir até (opcional)"
-                        error={errors.dataFim?.message}
-                        {...register('dataFim')}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
-      </form>
+          <FormError error={mutation.error} />
+        </form>
+      </FormProvider>
     </Modal>
+    </>
   );
 }

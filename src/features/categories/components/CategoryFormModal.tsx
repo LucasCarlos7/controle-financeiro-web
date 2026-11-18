@@ -1,15 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useId } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/Modal';
-import { ApiError } from '../../../shared/types/api';
+import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateCategoryMutation, useUpdateCategoryMutation } from '../hooks/useCategoryMutations';
-import type { Categoria } from '../types';
+import type { Categoria, TipoCategoria } from '../types';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { FormError } from '../../../shared/components/ui/FormError';
+import { IconPickerField } from '../../../shared/components/ui/IconPicker';
+import { SegmentedControl } from '../../../shared/components/ui/SegmentedControl';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -20,6 +21,11 @@ const formSchema = z.object({
 
 type CategoryFormData = z.infer<typeof formSchema>;
 
+const TIPOS: { value: TipoCategoria; label: string; tone: 'danger' | 'success' }[] = [
+  { value: 'Despesa', label: 'Despesa', tone: 'danger' },
+  { value: 'Receita', label: 'Receita', tone: 'success' },
+];
+
 interface CategoryFormModalProps {
   open: boolean;
   onClose: () => void;
@@ -28,6 +34,8 @@ interface CategoryFormModalProps {
 
 export function CategoryFormModal({ open, onClose, category }: CategoryFormModalProps) {
   const isEditing = Boolean(category);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateCategoryMutation();
   const updateMutation = useUpdateCategoryMutation();
   const mutation = isEditing ? updateMutation : createMutation;
@@ -36,6 +44,8 @@ export function CategoryFormModal({ open, onClose, category }: CategoryFormModal
     register,
     handleSubmit,
     reset,
+    control,
+    watch,
     formState: { errors },
   } = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
@@ -54,63 +64,76 @@ export function CategoryFormModal({ open, onClose, category }: CategoryFormModal
   }, [open, category, reset]);
 
   function onSubmit(data: CategoryFormData) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && category) {
       updateMutation.mutate(
         { id: category.id, request: { nome: data.nome, icone: data.icone || null, cor: data.cor || null } },
-        { onSuccess: onClose },
+        { onSuccess: done('Categoria atualizada') },
       );
     } else {
       createMutation.mutate(
         { nome: data.nome, tipo: data.tipo, icone: data.icone || null, cor: data.cor || null },
-        { onSuccess: onClose },
+        { onSuccess: done('Categoria criada') },
       );
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar categoria' : 'Nova categoria'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="nome" label="Nome" error={errors.nome?.message} {...register('nome')} />
-
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="sheet"
+      title={isEditing ? 'Editar categoria' : 'Nova categoria'}
+      description={isEditing ? 'O tipo da categoria não pode ser alterado.' : undefined}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar categoria'}
+        </Button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
         {!isEditing && (
-          <Select id="tipo" label="Tipo" {...register('tipo')}>
-            <option value="Despesa">Despesa</option>
-            <option value="Receita">Receita</option>
-          </Select>
+          <Controller
+            control={control}
+            name="tipo"
+            render={({ field }) => (
+              <SegmentedControl label="Tipo" options={TIPOS} value={field.value} onChange={field.onChange} className="mb-5" />
+            )}
+          />
         )}
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label htmlFor="cor" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Cor
-            </label>
+        <FormSection label="Categoria">
+          <TextRow
+            id="nome"
+            icon="tag"
+            label="Nome"
+            placeholder="Ex.: Mercado"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          <label htmlFor="cor" className="flex min-h-14 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-surface-hover">
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-sunken ring-1 ring-border"
+            >
+              <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: watch('cor') }} />
+            </span>
+            <span className="text-base font-medium text-text">Cor</span>
             <input
               id="cor"
               type="color"
-              className="h-11 w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
+              className="ml-auto h-8 w-12 cursor-pointer rounded-control border border-border-strong bg-transparent p-0.5"
               {...register('cor')}
             />
-          </div>
-          <div className="flex-1">
-            <Input id="icone" label="Ícone (opcional)" placeholder="ex: shopping-cart" {...register('icone')} />
-          </div>
-        </div>
+          </label>
+          <IconPickerField control={control} name="icone" fallback="tag" color={watch('cor')} />
+        </FormSection>
 
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

@@ -4,12 +4,16 @@ import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { AccountsPage } from '../features/accounts/AccountsPage';
 import { CategoriesPage } from '../features/categories/CategoriesPage';
-import { TransactionsPage } from '../features/transactions/TransactionsPage';
 import { BudgetsPage } from '../features/budgets/BudgetsPage';
 import { GoalsPage } from '../features/goals/GoalsPage';
 import { ProtectedRoute } from '../shared/components/ProtectedRoute';
 import { AppShell } from '../shared/layout/AppShell';
-import { Spinner } from '../shared/components/Spinner';
+import { Page } from '../shared/layout/Page';
+import { Spinner } from '../shared/components/ui/Spinner';
+
+const TransactionsPage = lazy(() =>
+  import('../features/transactions/TransactionsPage').then((module) => ({ default: module.TransactionsPage })),
+);
 
 const DashboardPage = lazy(() =>
   import('../features/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })),
@@ -27,16 +31,55 @@ export function AppRoutes() {
           <Route
             path="/dashboard"
             element={
-              <Suspense fallback={<Spinner label="Carregando painel..." />}>
-                <DashboardPage />
-              </Suspense>
+              <Page width="full">
+                <Suspense fallback={<Spinner label="Carregando painel..." />}>
+                  <DashboardPage />
+                </Suspense>
+              </Page>
             }
           />
-          <Route path="/extrato" element={<TransactionsPage />} />
-          <Route path="/contas" element={<AccountsPage />} />
-          <Route path="/categorias" element={<CategoriesPage />} />
-          <Route path="/orcamentos" element={<BudgetsPage />} />
-          <Route path="/objetivos" element={<GoalsPage />} />
+          <Route
+            path="/extrato"
+            element={
+              <Page width="full">
+                <Suspense fallback={<Spinner label="Carregando extrato..." />}>
+                  <TransactionsPage />
+                </Suspense>
+              </Page>
+            }
+          />
+          <Route
+            path="/contas"
+            element={
+              <Page>
+                <AccountsPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/categorias"
+            element={
+              <Page>
+                <CategoriesPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/orcamentos"
+            element={
+              <Page>
+                <BudgetsPage />
+              </Page>
+            }
+          />
+          <Route
+            path="/objetivos"
+            element={
+              <Page>
+                <GoalsPage />
+              </Page>
+            }
+          />
         </Route>
       </Route>
 

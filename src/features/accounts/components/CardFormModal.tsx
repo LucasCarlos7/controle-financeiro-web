@@ -1,16 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { useCreateCardMutation, useUpdateCardMutation } from '../hooks/useCardMutations';
 import { useAccountsQuery } from '../hooks/useAccountsQuery';
 import type { CartaoCredito } from '../types';
+import { useToast } from '../../../shared/hooks/useFeedback';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { contaOption } from '../pickerOptions';
+import { IconPickerField } from '../../../shared/components/ui/IconPicker';
+import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
+import { MoneyRowField } from '../../../shared/components/ui/MoneyFields';
+import { FormError } from '../../../shared/components/ui/FormError';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -18,6 +21,7 @@ const formSchema = z.object({
   diaFechamento: z.coerce.number().int().min(1, 'Entre 1 e 31').max(31, 'Entre 1 e 31'),
   diaVencimento: z.coerce.number().int().min(1, 'Entre 1 e 31').max(31, 'Entre 1 e 31'),
   contaPagamentoId: z.string().optional(),
+  icone: z.string().optional(),
 });
 
 type CardFormInput = z.input<typeof formSchema>;
@@ -31,6 +35,8 @@ interface CardFormModalProps {
 
 export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
   const isEditing = Boolean(card);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateCardMutation();
   const updateMutation = useUpdateCardMutation();
   const mutation = isEditing ? updateMutation : createMutation;
@@ -40,10 +46,11 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<CardFormInput, unknown, CardFormOutput>({
     resolver: zodResolver(formSchema),
-    defaultValues: { nome: '', limite: 0, diaFechamento: 1, diaVencimento: 10, contaPagamentoId: '' },
+    defaultValues: { nome: '', limite: 0, diaFechamento: 1, diaVencimento: 10, contaPagamentoId: '', icone: '' },
   });
 
   useEffect(() => {
@@ -54,6 +61,7 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
         diaFechamento: card?.diaFechamento ?? 1,
         diaVencimento: card?.diaVencimento ?? 10,
         contaPagamentoId: card?.contaPagamentoId ?? '',
+        icone: card?.icone ?? '',
       });
     }
   }, [open, card, reset]);
@@ -67,78 +75,95 @@ export function CardFormModal({ open, onClose, card }: CardFormModalProps) {
       diaFechamento: data.diaFechamento,
       diaVencimento: data.diaVencimento,
       contaPagamentoId: data.contaPagamentoId || null,
+      icone: data.icone || null,
+    };
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
     };
 
     if (isEditing && card) {
-      updateMutation.mutate({ id: card.id, request }, { onSuccess: onClose });
+      updateMutation.mutate({ id: card.id, request }, { onSuccess: done('Cartão atualizado') });
     } else {
-      createMutation.mutate(request, { onSuccess: onClose });
+      createMutation.mutate(request, { onSuccess: done('Cartão criado') });
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar cartão de crédito' : 'Novo cartão de crédito'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="cardNome" label="Nome" error={errors.nome?.message} {...register('nome')} />
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="sheet"
+      title={isEditing ? 'Editar cartão' : 'Novo cartão de crédito'}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar cartão'}
+        </Button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormSection label="Cartão">
+          <TextRow
+            id="cardNome"
+            icon="card"
+            label="Apelido do cartão"
+            placeholder="Ex.: Nubank"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          <IconPickerField control={control} name="icone" fallback="card" />
+          <MoneyRowField
+            control={control}
+            name="limite"
+            id="limite"
+            icon="wallet"
+            label="Limite"
+            required
+            error={errors.limite?.message}
+          />
+        </FormSection>
 
-        <Input
-          id="limite"
-          type="number"
-          step="0.01"
-          label="Limite"
-          error={errors.limite?.message}
-          {...register('limite')}
-        />
+        <FormSection label="Fatura">
+          <TextRow
+            id="diaFechamento"
+            icon="calendar"
+            label="Dia de fechamento"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            required
+            error={errors.diaFechamento?.message}
+            {...register('diaFechamento')}
+          />
+          <TextRow
+            id="diaVencimento"
+            icon="calendar"
+            label="Dia de vencimento"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            required
+            error={errors.diaVencimento?.message}
+            {...register('diaVencimento')}
+          />
+          <SelectRowField
+            control={control}
+            name="contaPagamentoId"
+            icon="bank"
+            label="Conta de pagamento"
+            pickerTitle="De qual conta a fatura é paga?"
+            placeholder="Nenhuma"
+            options={[
+              { value: '', label: 'Nenhuma' },
+              ...(accounts ?? []).map(contaOption),
+            ]}
+          />
+        </FormSection>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <Input
-              id="diaFechamento"
-              type="number"
-              min={1}
-              max={31}
-              label="Dia de fechamento"
-              error={errors.diaFechamento?.message}
-              {...register('diaFechamento')}
-            />
-          </div>
-          <div className="flex-1">
-            <Input
-              id="diaVencimento"
-              type="number"
-              min={1}
-              max={31}
-              label="Dia de vencimento"
-              error={errors.diaVencimento?.message}
-              {...register('diaVencimento')}
-            />
-          </div>
-        </div>
-
-        <Select id="contaPagamentoId" label="Conta de pagamento (opcional)" {...register('contaPagamentoId')}>
-          <option value="">Nenhuma</option>
-          {(accounts ?? []).map((conta) => (
-            <option key={conta.id} value={conta.id}>
-              {conta.nome}
-            </option>
-          ))}
-        </Select>
-
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

@@ -1,6 +1,7 @@
 export type TipoTransacao = 'Receita' | 'Despesa' | 'Transferencia';
 export type StatusTransacao = 'Pendente' | 'Pago';
 export type TipoRecorrencia = 'Mensal' | 'Fixa' | 'Parcelada';
+export type EscopoEdicaoRecorrencia = 'SomenteEsta' | 'EstaEPosteriores' | 'Todas';
 
 export interface Transacao {
   id: string;
@@ -56,6 +57,7 @@ export interface UpdateTransacaoRequest {
   categoriaId?: string | null;
   subcategoriaId?: string | null;
   tagIds?: string[] | null;
+  escopoEdicao?: EscopoEdicaoRecorrencia;
 }
 
 export interface TransactionFilters {

@@ -2,9 +2,133 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Design tokens. Componentes usam só os nomes semânticos (bg-surface, text-text-muted, border-border...).
+ * Os valores do tema escuro são trocados em .dark, então nenhum componente precisa de `dark:`.
+ * A paleta padrão do Tailwind é removida: uma cor crua (slate-500, indigo-600) não gera CSS.
+ */
 @theme {
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --color-*: initial;
+  --color-white: oklch(1 0 0);
+  --color-black: oklch(0 0 0);
+
+  /* Superfícies */
+  --color-bg: oklch(0.975 0.003 265);
+  --color-surface: oklch(1 0 0);
+  --color-surface-raised: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.963 0.004 265);
+  --color-surface-hover: oklch(0.948 0.005 265);
+  --color-overlay: oklch(0.18 0.01 265 / 0.5);
+
+  /* Bordas */
+  --color-border: oklch(0.92 0.005 265);
+  --color-border-strong: oklch(0.86 0.008 265);
+
+  /* Texto */
+  --color-text: oklch(0.2 0.012 265);
+  --color-text-muted: oklch(0.47 0.012 265);
+  --color-text-subtle: oklch(0.58 0.01 265);
+
+  /* Marca: ação primária, item ativo, foco */
+  --color-primary: oklch(0.52 0.15 150);
+  --color-primary-hover: oklch(0.47 0.14 150);
+  --color-primary-fg: oklch(1 0 0);
+  --color-primary-text: oklch(0.47 0.14 150);
+  --color-primary-soft: oklch(0.955 0.04 150);
+  --color-focus: oklch(0.58 0.17 150);
+
+  /* Estado e dado financeiro */
+  --color-success: oklch(0.48 0.14 150);
+  --color-success-soft: oklch(0.955 0.04 150);
+  --color-warning: oklch(0.52 0.12 62);
+  --color-warning-soft: oklch(0.965 0.04 85);
+  --color-warning-fill: oklch(0.68 0.15 66);
+  --color-danger: oklch(0.53 0.21 22);
+  --color-danger-hover: oklch(0.47 0.2 22);
+  --color-danger-soft: oklch(0.96 0.025 20);
+  --color-danger-fill: oklch(0.55 0.21 18);
+  --color-income: oklch(0.48 0.14 150);
+  --color-expense: oklch(0.53 0.21 18);
+  --color-balance: oklch(0.35 0.02 265);
+
+  /* Tipografia: 12 / 13 / 14 / 16 / 18 / 24 / 32 / 40 */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.5rem;
+  --text-4xl--line-height: 3rem;
+
+  /* Raios: controle, card, modal */
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-modal: 1rem;
+
+  /* Sombras */
+  --shadow-card: 0 1px 2px 0 oklch(0.2 0.02 265 / 0.04);
+  --shadow-raised: 0 16px 40px -12px oklch(0.2 0.02 265 / 0.25), 0 2px 6px -2px oklch(0.2 0.02 265 / 0.08);
+
+  /* Larguras de conteúdo */
+  --container-narrow: 35rem;
+  --container-default: 60rem;
+  --container-wide: 76rem;
+
+  /* Movimento */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in var(--duration-fast) ease-out;
+  --animate-slide-up: slide-up var(--duration-base) var(--ease-out-expo);
+  --animate-scale-in: scale-in var(--duration-fast) var(--ease-out-expo);
+}
+
+.dark {
+  --color-bg: oklch(0.185 0.008 265);
+  --color-surface: oklch(0.225 0.01 265);
+  --color-surface-raised: oklch(0.215 0.01 265);
+  --color-surface-sunken: oklch(0.195 0.009 265);
+  --color-surface-hover: oklch(0.27 0.012 265);
+  --color-overlay: oklch(0.08 0.005 265 / 0.7);
+
+  --color-border: oklch(0.285 0.012 265);
+  --color-border-strong: oklch(0.36 0.014 265);
+
+  --color-text: oklch(0.965 0.003 265);
+  --color-text-muted: oklch(0.73 0.012 265);
+  --color-text-subtle: oklch(0.62 0.012 265);
+
+  --color-primary: oklch(0.52 0.15 150);
+  --color-primary-hover: oklch(0.47 0.14 150);
+  --color-primary-fg: oklch(1 0 0);
+  --color-primary-text: oklch(0.8 0.18 150);
+  --color-primary-soft: oklch(0.3 0.06 150);
+  --color-focus: oklch(0.78 0.18 150);
+
+  --color-success: oklch(0.8 0.18 150);
+  --color-success-soft: oklch(0.3 0.06 150);
+  --color-warning: oklch(0.82 0.13 80);
+  --color-warning-soft: oklch(0.32 0.05 75);
+  --color-warning-fill: oklch(0.82 0.13 80);
+  --color-danger: oklch(0.72 0.18 20);
+  --color-danger-hover: oklch(0.78 0.15 20);
+  --color-danger-soft: oklch(0.31 0.07 20);
+  --color-income: oklch(0.8 0.18 150);
+  --color-expense: oklch(0.7 0.19 18);
+  --color-balance: oklch(0.9 0.01 265);
+
+  --shadow-card: 0 0 0 0 transparent;
+  --shadow-raised: 0 20px 48px -12px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(1 0 0 / 0.04);
 }
 
 @layer base {
@@ -19,17 +143,18 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+    @apply bg-bg text-base text-text;
     font-feature-settings: 'cv11', 'ss01';
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-  }
-
-  .dark * {
-    scrollbar-color: #475569 transparent;
+    scrollbar-color: var(--color-border-strong) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -38,26 +163,49 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
+    background-color: var(--color-border-strong);
     border-radius: 9999px;
-  }
-
-  .dark *::-webkit-scrollbar-thumb {
-    background-color: #475569;
   }
 
   *::-webkit-scrollbar-track {
     background-color: transparent;
   }
-}
 
-@layer utilities {
-  .animate-in {
-    animation: fade-in 0.15s ease-out;
+  /* Campos numéricos sem as setas de incremento. */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
-  .animate-slide-up {
-    animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Amplia a área de toque para 44x44 sem mudar o tamanho visual do controle. */
+@utility hit-area {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -73,10 +221,21 @@
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -1,15 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { todayApiDate } from '../../../shared/utils/format';
+import { useToast } from '../../../shared/hooks/useFeedback';
 import { useCreateGoalMutation, useUpdateGoalMutation } from '../hooks/useGoalMutations';
 import type { Objetivo } from '../types';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Icon } from '../../../shared/components/icons';
+import { FormSection, TextRow } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
+import { FormError } from '../../../shared/components/ui/FormError';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
@@ -28,6 +29,8 @@ interface GoalFormModalProps {
 
 export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
   const isEditing = Boolean(goal);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateGoalMutation();
   const updateMutation = useUpdateGoalMutation();
   const mutation = isEditing ? updateMutation : createMutation;
@@ -36,6 +39,7 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<GoalFormInput, unknown, GoalFormOutput>({
     resolver: zodResolver(formSchema),
@@ -55,44 +59,53 @@ export function GoalFormModal({ open, onClose, goal }: GoalFormModalProps) {
   if (!open) return null;
 
   function onSubmit(data: GoalFormOutput) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && goal) {
-      updateMutation.mutate({ id: goal.id, request: data }, { onSuccess: onClose });
+      updateMutation.mutate({ id: goal.id, request: data }, { onSuccess: done('Objetivo atualizado') });
     } else {
-      createMutation.mutate(data, { onSuccess: onClose });
+      createMutation.mutate(data, { onSuccess: done('Objetivo criado') });
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar objetivo' : 'Novo objetivo'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Input id="nome" label="Nome" error={errors.nome?.message} {...register('nome')} />
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="sheet"
+      title={isEditing ? 'Editar objetivo' : 'Novo objetivo'}
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar objetivo'}
+        </Button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AmountInputField control={control} name="valorAlvo" id="valorAlvo" label="Valor alvo" error={errors.valorAlvo?.message} />
+        <FormSection label="Objetivo">
+          <TextRow
+            id="nome"
+            icon="target"
+            label="Nome"
+            placeholder="Ex.: Viagem"
+            required
+            error={errors.nome?.message}
+            {...register('nome')}
+          />
+          <TextRow
+            id="dataAlvo"
+            icon="calendar"
+            label="Data alvo"
+            type="date"
+            required
+            error={errors.dataAlvo?.message}
+            {...register('dataAlvo')}
+          />
+        </FormSection>
 
-        <Input
-          id="valorAlvo"
-          type="number"
-          step="0.01"
-          label="Valor alvo"
-          error={errors.valorAlvo?.message}
-          {...register('valorAlvo')}
-        />
-
-        <Input id="dataAlvo" type="date" label="Data alvo" error={errors.dataAlvo?.message} {...register('dataAlvo')} />
-
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

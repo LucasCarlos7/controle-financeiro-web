@@ -34,8 +34,12 @@ export interface SubcategoriaRequest {
 export interface Tag {
   id: string;
   nome: string;
+  icone?: string | null;
 }
 
 export interface CreateTagRequest {
   nome: string;
+  icone?: string | null;
 }
+
+export type UpdateTagRequest = CreateTagRequest;

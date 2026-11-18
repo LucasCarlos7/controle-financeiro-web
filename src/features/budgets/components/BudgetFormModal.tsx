@@ -1,15 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Modal } from '../../../shared/components/Modal';
-import { ApiError } from '../../../shared/types/api';
 import { useCategoriesQuery } from '../../categories/hooks/useCategoriesQuery';
 import { useCreateBudgetMutation, useUpdateBudgetMutation } from '../hooks/useBudgetMutations';
 import type { Orcamento } from '../types';
+import { useToast } from '../../../shared/hooks/useFeedback';
+import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
-import { Icon } from '../../../shared/components/icons';
+import { FormSection } from '../../../shared/components/ui/FormRows';
+import { AmountInputField } from '../../../shared/components/ui/MoneyFields';
+import { SelectRowField } from '../../../shared/components/ui/SelectRowField';
+import { FormError } from '../../../shared/components/ui/FormError';
+import { formatMonthYear } from '../../../shared/utils/format';
 
 const formSchema = z.object({
   categoriaId: z.string().min(1, 'Selecione a categoria'),
@@ -29,15 +32,19 @@ interface BudgetFormModalProps {
 
 export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormModalProps) {
   const isEditing = Boolean(budget);
+  const formId = useId();
+  const toast = useToast();
   const createMutation = useCreateBudgetMutation();
   const updateMutation = useUpdateBudgetMutation();
   const mutation = isEditing ? updateMutation : createMutation;
   const { data: categories } = useCategoriesQuery();
   const despesaCategories = (categories ?? []).filter((categoria) => categoria.tipo === 'Despesa');
+  const categoriaNome = categories?.find((categoria) => categoria.id === budget?.categoriaId)?.nome;
 
   const {
-    register,
     handleSubmit,
+    reset,
+    control,
     formState: { errors },
   } = useForm<BudgetFormInput, unknown, BudgetFormOutput>({
     resolver: zodResolver(formSchema),
@@ -47,57 +54,81 @@ export function BudgetFormModal({ open, onClose, ano, mes, budget }: BudgetFormM
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      reset({
+        categoriaId: budget?.categoriaId ?? '',
+        limiteValor: budget?.limiteValor ?? 0,
+      });
+    }
+  }, [open, budget, reset]);
+
   if (!open) return null;
 
   function onSubmit(data: BudgetFormOutput) {
+    const done = (message: string) => () => {
+      toast(message);
+      onClose();
+    };
     if (isEditing && budget) {
-      updateMutation.mutate({ id: budget.id, request: { limiteValor: data.limiteValor } }, { onSuccess: onClose });
+      updateMutation.mutate(
+        { id: budget.id, request: { limiteValor: data.limiteValor } },
+        { onSuccess: done('Orçamento atualizado') },
+      );
     } else {
       createMutation.mutate(
         { categoriaId: data.categoriaId, ano, mes, limiteValor: data.limiteValor },
-        { onSuccess: onClose },
+        { onSuccess: done('Orçamento criado') },
       );
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={isEditing ? 'Editar orçamento' : 'Novo orçamento'}>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        {!isEditing && (
-          <Select id="categoriaId" label="Categoria" error={errors.categoriaId?.message} {...register('categoriaId')}>
-            <option value="">Selecione</option>
-            {despesaCategories.map((categoria) => (
-              <option key={categoria.id} value={categoria.id}>
-                {categoria.nome}
-              </option>
-            ))}
-          </Select>
-        )}
-
-        <Input
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="sheet"
+      title={isEditing ? 'Editar orçamento' : 'Novo orçamento'}
+      description={
+        isEditing
+          ? `${categoriaNome ?? 'Categoria'} · ${formatMonthYear(ano, mes)}`
+          : `Limite de gasto para ${formatMonthYear(ano, mes).toLowerCase()}`
+      }
+      footer={
+        <Button type="submit" form={formId} loading={mutation.isPending} className="h-12 w-full text-lg">
+          {mutation.isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar orçamento'}
+        </Button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AmountInputField
+          control={control}
+          name="limiteValor"
           id="limiteValor"
-          type="number"
-          step="0.01"
-          label="Limite"
+          label="Limite do mês"
           error={errors.limiteValor?.message}
-          {...register('limiteValor')}
         />
-
-        {mutation.error && (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            <Icon name="alert" className="h-4 w-4 shrink-0" />
-            {mutation.error instanceof ApiError ? mutation.error.message : 'Não foi possível salvar.'}
-          </p>
+        {!isEditing && (
+          <FormSection label="Classificação" hint="Só categorias de despesa.">
+            <SelectRowField
+              control={control}
+              name="categoriaId"
+              icon="tag"
+              label="Categoria"
+              pickerTitle="Qual é a categoria?"
+              options={despesaCategories.map((categoria) => ({
+                value: categoria.id,
+                label: categoria.nome,
+                icon: categoria.icone || 'tag',
+                color: categoria.cor,
+              }))}
+              required
+              error={errors.categoriaId?.message}
+            />
+          </FormSection>
         )}
 
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending} className="flex-1">
-            {mutation.isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </div>
+        <FormError error={mutation.error} />
       </form>
     </Modal>
   );

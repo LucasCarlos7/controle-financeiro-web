@@ -1,13 +1,22 @@
 import { useMemo, useState } from 'react';
-import { MonthYearPicker } from '../../shared/components/MonthYearPicker';
-import { Spinner } from '../../shared/components/Spinner';
-import { ErrorState } from '../../shared/components/ErrorState';
-import { EmptyState } from '../../shared/components/EmptyState';
+import { MonthYearPicker } from '../../shared/components/ui/MonthYearPicker';
+import { EmptyState } from '../../shared/components/ui/EmptyState';
+import { ErrorState } from '../../shared/components/ui/ErrorState';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
+import { Skeleton } from '../../shared/components/ui/Skeleton';
+import { TextLink } from '../../shared/components/ui/TextLink';
 import { toApiDate } from '../../shared/utils/format';
-import { SummaryCards } from './components/SummaryCards';
+import { BalanceCard } from './components/BalanceCard';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
-import { MonthlyEvolutionChart } from './components/MonthlyEvolutionChart';
+import { DashboardCard } from './components/DashboardCard';
+import { EvolutionLegend, MonthlyEvolutionChart } from './components/MonthlyEvolutionChart';
+import {
+  AccountsCard,
+  BudgetsCard,
+  CreditCardsCard,
+  GoalsCard,
+  LatestTransactionsCard,
+} from './components/OverviewCards';
 import {
   useMonthlyEvolutionQuery,
   useMonthlySummaryQuery,
@@ -31,31 +40,59 @@ export function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Início" description="Resumo financeiro do período selecionado" />
-      <MonthYearPicker ano={periodo.ano} mes={periodo.mes} onChange={(ano, mes) => setPeriodo({ ano, mes })} />
+      <PageHeader
+        title="Início"
+        action={<MonthYearPicker ano={periodo.ano} mes={periodo.mes} onChange={(ano, mes) => setPeriodo({ ano, mes })} />}
+      />
 
-      {summaryQuery.isLoading && <Spinner label="Carregando resumo..." />}
-      {summaryQuery.isError && <ErrorState error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />}
-      {summaryQuery.data && <SummaryCards resumo={summaryQuery.data} />}
+      <div className="gap-4 md:columns-2 2xl:columns-3">
+        <BalanceCard
+          ano={periodo.ano}
+          mes={periodo.mes}
+          resumo={summaryQuery.data}
+          evolucao={evolutionQuery.data}
+          isLoading={summaryQuery.isLoading}
+          error={summaryQuery.error}
+          onRetry={() => summaryQuery.refetch()}
+        />
 
-      <div className="space-y-4">
-        {categoryQuery.isLoading && <Spinner label="Carregando gastos por categoria..." />}
-        {categoryQuery.isError && (
-          <ErrorState error={categoryQuery.error} onRetry={() => categoryQuery.refetch()} />
-        )}
-        {categoryQuery.data && categoryQuery.data.length === 0 && (
-          <EmptyState
-            title="Sem despesas neste mês"
-            description="Registre lançamentos para ver o detalhamento por categoria."
-          />
-        )}
-        {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
+        <DashboardCard title="Gastos por categoria" action={<TextLink to="/orcamentos">Definir limites</TextLink>}>
+          {categoryQuery.isLoading && <Skeleton className="mx-auto h-44 w-44 rounded-full" />}
+          {categoryQuery.isError && (
+            <ErrorState variant="compact" error={categoryQuery.error} onRetry={() => categoryQuery.refetch()} />
+          )}
+          {categoryQuery.data && categoryQuery.data.length === 0 && (
+            <EmptyState
+              variant="compact"
+              icon="pie"
+              title="Sem despesas neste mês"
+              description="Registre seus gastos e comece a ter visibilidade das suas finanças."
+            />
+          )}
+          {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
+        </DashboardCard>
 
-        {evolutionQuery.isLoading && <Spinner label="Carregando evolução mensal..." />}
-        {evolutionQuery.isError && (
-          <ErrorState error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
-        )}
-        {evolutionQuery.data && evolutionQuery.data.length > 0 && <MonthlyEvolutionChart data={evolutionQuery.data} />}
+        <LatestTransactionsCard />
+        <AccountsCard />
+        <CreditCardsCard />
+        <BudgetsCard ano={periodo.ano} mes={periodo.mes} />
+
+        <DashboardCard title="Receitas e despesas" action={<TextLink to="/extrato">Ver extrato</TextLink>}>
+          {evolutionQuery.isLoading && <Skeleton className="h-[280px]" />}
+          {evolutionQuery.isError && (
+            <ErrorState variant="compact" error={evolutionQuery.error} onRetry={() => evolutionQuery.refetch()} />
+          )}
+          {evolutionQuery.data && evolutionQuery.data.length > 0 && (
+            <>
+              <EvolutionLegend />
+              <div className="mt-3">
+                <MonthlyEvolutionChart data={evolutionQuery.data} />
+              </div>
+            </>
+          )}
+        </DashboardCard>
+
+        <GoalsCard />
       </div>
     </div>
   );

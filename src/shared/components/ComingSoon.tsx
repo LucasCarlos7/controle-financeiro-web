@@ -1,4 +1,4 @@
-import { EmptyState } from './EmptyState';
+import { EmptyState } from './ui/EmptyState';
 
 export function ComingSoon({ feature }: { feature: string }) {
   return (
