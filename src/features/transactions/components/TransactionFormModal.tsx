@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useId, useMemo } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
@@ -13,7 +13,7 @@ import {
   useCreateTransactionMutation,
   useUpdateTransactionMutation,
 } from '../hooks/useTransactionMutations';
-import type { Transacao } from '../types';
+import type { EscopoEdicaoRecorrencia, Transacao } from '../types';
 import {
   createTransactionFormSchema,
   resolverOrigem,
@@ -24,6 +24,7 @@ import { TransactionTypeField } from './form/TransactionTypeField';
 import { PaymentSection } from './form/PaymentSection';
 import { ClassificationSection } from './form/ClassificationSection';
 import { RecurrenceSection } from './form/RecurrenceSection';
+import { EditScopeModal } from './EditScopeModal';
 
 const SUBMIT_LABELS = {
   Despesa: 'Registrar despesa',
@@ -45,11 +46,15 @@ interface TransactionFormModalProps {
 
 export function TransactionFormModal({ open, onClose, transaction }: TransactionFormModalProps) {
   const isEditing = Boolean(transaction);
+  const isRecorrente = isEditing && Boolean(transaction?.recorrenciaId);
   const formId = useId();
   const toast = useToast();
   const createMutation = useCreateTransactionMutation();
   const createRecurringMutation = useCreateRecurringTransactionMutation();
   const updateMutation = useUpdateTransactionMutation();
+
+  const [scopeModalOpen, setScopeModalOpen] = useState(false);
+  const pendingPayload = useRef<Parameters<typeof updateMutation.mutate>[0] | null>(null);
 
   const formSchema = useMemo(() => createTransactionFormSchema(isEditing), [isEditing]);
 
@@ -121,22 +126,42 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
     };
   }
 
+  function handleScopeConfirm(escopo: EscopoEdicaoRecorrencia) {
+    if (!pendingPayload.current) return;
+    const payload = {
+      ...pendingPayload.current,
+      request: { ...pendingPayload.current.request, escopoEdicao: escopo },
+    };
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setScopeModalOpen(false);
+        pendingPayload.current = null;
+        closeWith('Lançamento atualizado')();
+      },
+    });
+  }
+
   function onSubmit(data: TransactionFormOutput) {
     if (isEditing && transaction) {
-      updateMutation.mutate(
-        {
-          id: transaction.id,
-          request: {
-            valor: data.valor,
-            data: data.data,
-            descricao: data.descricao,
-            categoriaId: data.categoriaId || null,
-            subcategoriaId: data.subcategoriaId || null,
-            tagIds: data.tagIds ?? [],
-          },
+      const basePayload = {
+        id: transaction.id,
+        request: {
+          valor: data.valor,
+          data: data.data,
+          descricao: data.descricao,
+          categoriaId: data.categoriaId || null,
+          subcategoriaId: data.subcategoriaId || null,
+          tagIds: data.tagIds ?? [],
         },
-        { onSuccess: closeWith('Lançamento atualizado') },
-      );
+      };
+
+      if (isRecorrente) {
+        pendingPayload.current = basePayload;
+        setScopeModalOpen(true);
+        return;
+      }
+
+      updateMutation.mutate(basePayload, { onSuccess: closeWith('Lançamento atualizado') });
       return;
     }
 
@@ -189,6 +214,13 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
   const mutation = isEditing ? updateMutation : recorrente ? createRecurringMutation : createMutation;
 
   return (
+    <>
+    <EditScopeModal
+      open={scopeModalOpen}
+      pending={updateMutation.isPending}
+      onConfirm={handleScopeConfirm}
+      onClose={() => setScopeModalOpen(false)}
+    />
     <Modal
       open={open}
       onClose={onClose}
@@ -236,5 +268,6 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
         </form>
       </FormProvider>
     </Modal>
+    </>
   );
 }
