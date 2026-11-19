@@ -46,7 +46,7 @@ export function TransactionsPage() {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState({ ano: now.getFullYear(), mes: now.getMonth() + 1 });
   const [filters, setFilters] = useState<Omit<TransactionFilters, 'dataInicio' | 'dataFim'>>({});
-  const [ordenacao, setOrdenacao] = useState<TransactionSortOrder>('data_desc');
+  const [ordenacao, setOrdenacao] = useState<TransactionSortOrder>('data_asc');
 
   const dataInicio = toApiDate(new Date(selectedMonth.ano, selectedMonth.mes - 1, 1));
   const dataFim = toApiDate(new Date(selectedMonth.ano, selectedMonth.mes, 0));
