@@ -7,11 +7,12 @@ import { AuthLayout } from '../../shared/layout/AuthLayout';
 import { Button } from '../../shared/components/ui/Button';
 import { FormError } from '../../shared/components/ui/FormError';
 import { Input } from '../../shared/components/ui/Input';
+import { PasswordInput } from '../../shared/components/ui/PasswordInput';
 
 const registerSchema = z.object({
   nome: z.string().min(1, 'Informe o nome'),
   email: z.email({ message: 'E-mail inválido' }),
-  senha: z.string().min(6, 'A senha deve ter ao menos 6 caracteres'),
+  senha: z.string().min(8, 'A senha deve ter ao menos 8 caracteres'),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -54,12 +55,11 @@ export function RegisterPage() {
           error={errors.email?.message}
           {...register('email')}
         />
-        <Input
+        <PasswordInput
           id="senha"
-          type="password"
           label="Senha"
           autoComplete="new-password"
-          hint="Mínimo de 6 caracteres."
+          hint="Mínimo de 8 caracteres."
           error={errors.senha?.message}
           {...register('senha')}
         />

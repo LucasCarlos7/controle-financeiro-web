@@ -122,11 +122,35 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
 
   return (
     <Modal open={open} onClose={onClose} title={transacao.descricao} variant="sheet">
-      <div className="flex flex-col gap-5">
-        {/* amount + icon */}
-        <div className="flex flex-col items-center gap-3 py-2">
-          <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} />
-          <Amount value={transacao.valor} kind={visual.kind} className="text-3xl font-bold" />
+      <div className="flex flex-col gap-4">
+
+        {/* Hero: icon + amount + badges */}
+        <div
+          className={cn(
+            'flex flex-col items-center gap-3 rounded-2xl px-4 py-6',
+            visual.kind === 'income' && 'bg-success/8',
+            visual.kind === 'expense' && 'bg-danger/8',
+            visual.kind === 'transfer' && 'bg-primary/8',
+          )}
+        >
+          <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} size="lg" />
+          <Amount value={transacao.valor} kind={visual.kind} className="text-4xl font-bold tracking-tight" />
+          {(isVencido || isPendente || isEfetivada || transacao.recorrenciaId || display.tags.length > 0) && (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {isVencido && <Badge tone="danger">Vencido</Badge>}
+              {isPendente && <Badge tone="warning">Pendente</Badge>}
+              {isEfetivada && <Badge tone="success">{isReceita ? 'Recebido' : 'Pago'}</Badge>}
+              {transacao.recorrenciaId && (
+                <Badge tone="neutral">
+                  <Icon name="repeat" className="h-3 w-3" />
+                  Recorrente
+                </Badge>
+              )}
+              {display.tags.map((tag) => (
+                <Badge key={tag} tone="primary">#{tag}</Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* details */}
@@ -143,26 +167,8 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
           )}
         </div>
 
-        {/* badges */}
-        {(isVencido || isPendente || isEfetivada || transacao.recorrenciaId || display.tags.length > 0) && (
-          <div className="flex flex-wrap gap-1.5">
-            {isVencido && <Badge tone="danger">Vencido</Badge>}
-            {isPendente && <Badge tone="warning">Pendente</Badge>}
-            {isEfetivada && <Badge tone="success">{isReceita ? 'Recebido' : 'Pago'}</Badge>}
-            {transacao.recorrenciaId && (
-              <Badge tone="neutral">
-                <Icon name="repeat" className="h-3 w-3" />
-                Recorrente
-              </Badge>
-            )}
-            {display.tags.map((tag) => (
-              <Badge key={tag} tone="primary">#{tag}</Badge>
-            ))}
-          </div>
-        )}
-
         {/* edit */}
-        <Button variant="outline" className="w-full" onClick={() => { onClose(); onEdit(); }}>
+        <Button variant="primary" className="w-full" onClick={() => { onClose(); onEdit(); }}>
           <Icon name="pencil" className="h-4 w-4" />
           Editar
         </Button>
@@ -172,7 +178,15 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
           <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-text-muted">Ajustes</p>
           <div className="rounded-xl bg-surface-sunken">
             <label className="flex cursor-pointer items-center justify-between px-4 py-3.5">
-              <span className="text-base font-medium text-text">{isReceita ? 'Já recebi' : 'Já paguei'}</span>
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-lg',
+                  isEfetivada ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-muted',
+                )}>
+                  <Icon name="check" className="h-4 w-4" />
+                </div>
+                <span className="text-base font-medium text-text">{isReceita ? 'Já recebi' : 'Já paguei'}</span>
+              </div>
               <input
                 type="checkbox"
                 role="switch"
@@ -187,27 +201,37 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
           </div>
         </div>
 
-        {/* delete actions */}
-        <div className="flex flex-col gap-2 pb-2">
-          {transacao.recorrenciaId && (
+        {/* destructive actions */}
+        <div className="rounded-xl bg-surface-sunken overflow-hidden">
+            {transacao.recorrenciaId && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleDeleteRecurrence}
+                className={cn(
+                  'flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-raised disabled:opacity-50',
+                  'border-b border-border',
+                )}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/15 text-warning">
+                  <Icon name="repeat" className="h-4 w-4" />
+                </div>
+                <span className="text-base font-medium text-warning">Cancelar recorrência</span>
+              </button>
+            )}
             <button
               type="button"
               disabled={busy}
-              onClick={handleDeleteRecurrence}
-              className="text-center text-base font-medium text-warning disabled:opacity-50"
+              onClick={handleDelete}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-raised disabled:opacity-50"
             >
-              Cancelar recorrência
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-danger/15 text-danger">
+                <Icon name="trash" className="h-4 w-4" />
+              </div>
+              <span className="text-base font-medium text-danger">Apagar transação</span>
             </button>
-          )}
-          <button
-            type="button"
-            disabled={busy}
-            onClick={handleDelete}
-            className="text-center text-base font-medium text-danger disabled:opacity-50"
-          >
-            Apagar transação
-          </button>
-        </div>
+          </div>
+
       </div>
     </Modal>
   );

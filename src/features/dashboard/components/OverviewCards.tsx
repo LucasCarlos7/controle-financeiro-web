@@ -69,7 +69,7 @@ export function CreditCardsCard() {
             return (
               <li key={cartao.id}>
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-12 shrink-0 items-center justify-center rounded-control bg-primary text-primary-fg">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-text">
                     <EntityIcon name={cartao.icone} fallback="card" className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -190,8 +190,10 @@ export function GoalsCard() {
       <CardStatus isLoading={isLoading} error={error} onRetry={() => refetch()} rows={2} />
       {data && data.length === 0 && (
         <div className="flex flex-col items-center py-4 text-center">
-          <Icon name="target" className="h-6 w-6 text-primary-text" />
-          <p className="mt-2 text-base text-text-muted">Crie, gerencie e acompanhe seus objetivos.</p>
+          <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary-text">
+            <Icon name="target" className="h-5 w-5" />
+          </span>
+          <p className="text-base text-text-muted">Crie, gerencie e acompanhe seus objetivos.</p>
         </div>
       )}
       {data && data.length > 0 && (

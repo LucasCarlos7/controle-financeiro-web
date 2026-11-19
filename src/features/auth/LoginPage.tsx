@@ -7,6 +7,7 @@ import { AuthLayout } from '../../shared/layout/AuthLayout';
 import { Button } from '../../shared/components/ui/Button';
 import { FormError } from '../../shared/components/ui/FormError';
 import { Input } from '../../shared/components/ui/Input';
+import { PasswordInput } from '../../shared/components/ui/PasswordInput';
 
 const loginSchema = z.object({
   email: z.email({ message: 'E-mail inválido' }),
@@ -52,9 +53,8 @@ export function LoginPage() {
           error={errors.email?.message}
           {...register('email')}
         />
-        <Input
+        <PasswordInput
           id="senha"
-          type="password"
           label="Senha"
           autoComplete="current-password"
           error={errors.senha?.message}

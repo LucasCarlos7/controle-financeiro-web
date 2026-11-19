@@ -21,11 +21,8 @@ import { MonthStrip } from '../../shared/components/ui/MonthStrip';
 import { formatMonthYear, toApiDate } from '../../shared/utils/format';
 import type { Transacao, TransactionFilters, TransactionSortOrder } from './types';
 
-/** Painel lateral: gastos do mês corrente por categoria e os limites de orçamento. */
-function MonthPanel() {
-  const now = new Date();
-  const ano = now.getFullYear();
-  const mes = now.getMonth() + 1;
+/** Painel lateral: gastos do mês selecionado por categoria e os limites de orçamento. */
+function MonthPanel({ ano, mes }: { ano: number; mes: number }) {
   const { data, isLoading, isError, error, refetch } = useSpendingByCategoryQuery(ano, mes);
 
   return (
@@ -131,7 +128,7 @@ export function TransactionsPage() {
           )}
         </div>
 
-        <MonthPanel />
+        <MonthPanel ano={selectedMonth.ano} mes={selectedMonth.mes} />
       </div>
 
       <TransactionFormModal open={Boolean(editing)} transaction={editing} onClose={() => setEditing(undefined)} />

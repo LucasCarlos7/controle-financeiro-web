@@ -11,6 +11,7 @@ import { ActionMenu } from '../components/ui/ActionMenu';
 import { IconButton } from '../components/ui/IconButton';
 import { Logo } from '../components/ui/Logo';
 import { Modal } from '../components/ui/Modal';
+import { PWAInstallBanner } from '../components/ui/PWAInstallBanner';
 
 interface NavItem {
   to: string;
@@ -200,6 +201,7 @@ export function AppShell() {
         </div>
         <MobileNav />
         <AddButton />
+        <PWAInstallBanner />
       </div>
     </NewTransactionProvider>
   );

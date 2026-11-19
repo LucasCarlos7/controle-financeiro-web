@@ -14,6 +14,12 @@ const TIPO_VISUAL: Record<Transacao['tipo'], { kind: 'income' | 'expense' | 'tra
   Transferencia: { kind: 'transfer' },
 };
 
+const TIPO_BORDER: Record<Transacao['tipo'], string> = {
+  Receita: 'border-income',
+  Despesa: 'border-expense',
+  Transferencia: 'border-border-strong',
+};
+
 interface TransactionListItemProps {
   transacao: Transacao;
   display: TransactionDisplay;
@@ -45,9 +51,10 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
     <>
       <li className={cn(
         'relative flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-card last:rounded-b-card hover:bg-surface-hover',
-        isVencido && 'border-l-[3px] border-danger bg-danger-soft/50',
-        isPendente && 'border-l-[3px] border-warning bg-warning-soft/40',
-        isPago && 'border-l-[3px] border-success bg-success-soft/30',
+        'border-l-4', TIPO_BORDER[transacao.tipo],
+        isVencido && 'bg-danger-soft',
+        isPendente && 'bg-warning-soft',
+        isPago && 'bg-success-soft/60',
       )}>
         <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} />
 
@@ -91,7 +98,6 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
           )}
         </div>
 
-        <Icon name="chevron-right" className="relative z-10 h-4 w-4 shrink-0 text-text-muted" />
       </li>
 
       <TransactionDetailDrawer
