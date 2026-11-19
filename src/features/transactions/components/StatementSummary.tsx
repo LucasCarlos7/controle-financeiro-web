@@ -32,7 +32,7 @@ function lastTwelveMonths() {
   const now = new Date();
   return {
     dataInicio: toApiDate(new Date(now.getFullYear(), now.getMonth() - 11, 1)),
-    dataFim: toApiDate(new Date(now.getFullYear(), now.getMonth(), 1)),
+    dataFim: toApiDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
   };
 }
 
