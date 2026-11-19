@@ -108,7 +108,9 @@ function CategoriesTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (ca
                         className="-my-2 -mr-2"
                         items={[
                           { label: 'Editar', icon: 'pencil', onSelect: () => onEdit(categoria) },
-                          { label: 'Excluir', icon: 'trash', tone: 'danger', onSelect: () => handleDelete(categoria) },
+                          ...(!categoria.isPadrao
+                            ? [{ label: 'Excluir', icon: 'trash' as const, tone: 'danger' as const, onSelect: () => handleDelete(categoria) }]
+                            : []),
                         ]}
                       />
                     </div>
@@ -177,7 +179,9 @@ function TagsTab({ onCreate, onEdit }: { onCreate: () => void; onEdit: (tag: Tag
                 label={`Ações de ${tag.nome}`}
                 items={[
                   { label: 'Editar', icon: 'pencil', onSelect: () => onEdit(tag) },
-                  { label: 'Remover', icon: 'trash', tone: 'danger', onSelect: () => handleDelete(tag) },
+                  ...(!tag.isPadrao
+                    ? [{ label: 'Remover', icon: 'trash' as const, tone: 'danger' as const, onSelect: () => handleDelete(tag) }]
+                    : []),
                 ]}
               />
             }

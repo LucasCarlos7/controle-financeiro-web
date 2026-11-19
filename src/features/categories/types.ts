@@ -11,6 +11,7 @@ export interface Categoria {
   tipo: TipoCategoria;
   icone?: string | null;
   cor?: string | null;
+  isPadrao: boolean;
   subcategorias: Subcategoria[] | null;
 }
 
@@ -35,6 +36,7 @@ export interface Tag {
   id: string;
   nome: string;
   icone?: string | null;
+  isPadrao: boolean;
 }
 
 export interface CreateTagRequest {

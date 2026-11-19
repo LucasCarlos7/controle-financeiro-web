@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAccountsQuery } from '../../../accounts/hooks/useAccountsQuery';
 import { useCardsQuery } from '../../../accounts/hooks/useCardsQuery';
 import { cartaoOption, contaOption } from '../../../accounts/pickerOptions';
@@ -28,11 +29,25 @@ export function PaymentSection({ showStatus }: { showStatus: boolean }) {
 
   const tipo = watch('tipo');
   const formaPagamento = watch('formaPagamento');
+  const contaId = watch('contaId');
+  const cartaoCreditoId = watch('cartaoCreditoId');
   const isTransferencia = tipo === 'Transferencia';
   const pagaComCartao = tipo === 'Despesa' && formaPagamento === 'cartao';
 
   const contaOptions = (accounts ?? []).map(contaOption);
   const cartaoOptions = (cards ?? []).map(cartaoOption);
+
+  useEffect(() => {
+    if (contaOptions.length === 1 && !contaId) {
+      setValue('contaId', contaOptions[0].value as string);
+    }
+  }, [contaOptions.length, contaId]);
+
+  useEffect(() => {
+    if (cartaoOptions.length === 1 && pagaComCartao && !cartaoCreditoId) {
+      setValue('cartaoCreditoId', cartaoOptions[0].value as string);
+    }
+  }, [cartaoOptions.length, pagaComCartao, cartaoCreditoId]);
   const formasPagamento: PickerOption[] = [
     {
       value: 'conta',
