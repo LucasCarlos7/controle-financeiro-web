@@ -45,9 +45,9 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
     <>
       <li className={cn(
         'relative flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-card last:rounded-b-card hover:bg-surface-hover',
-        isVencido && 'border-l-2 border-danger bg-danger-soft/30',
-        isPendente && 'border-l-2 border-warning bg-warning-soft/20',
-        isPago && 'border-l-2 border-success bg-success-soft/20',
+        isVencido && 'border-l-[3px] border-danger bg-danger-soft/50',
+        isPendente && 'border-l-[3px] border-warning bg-warning-soft/40',
+        isPago && 'border-l-[3px] border-success bg-success-soft/30',
       )}>
         <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} />
 

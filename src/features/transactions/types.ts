@@ -65,7 +65,6 @@ export interface CreateTransacaoRecorrenteRequest {
   tipoRecorrencia: TipoRecorrencia;
   intervaloMeses?: number | null;
   totalParcelas?: number | null;
-  dataFim?: string | null;
 }
 
 export interface UpdateTransacaoRequest {

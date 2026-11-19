@@ -17,6 +17,7 @@ import {
   GoalsCard,
   LatestTransactionsCard,
 } from './components/OverviewCards';
+import { NextMonthPreviewCard } from './components/NextMonthPreviewCard';
 import {
   useMonthlyEvolutionQuery,
   useMonthlySummaryQuery,
@@ -72,7 +73,7 @@ export function DashboardPage() {
           {categoryQuery.data && categoryQuery.data.length > 0 && <CategoryBreakdownChart data={categoryQuery.data} />}
         </DashboardCard>
 
-        <LatestTransactionsCard />
+        <LatestTransactionsCard ano={periodo.ano} mes={periodo.mes} />
         <AccountsCard />
         <CreditCardsCard />
         <BudgetsCard ano={periodo.ano} mes={periodo.mes} />
@@ -93,6 +94,8 @@ export function DashboardPage() {
         </DashboardCard>
 
         <GoalsCard />
+
+        <NextMonthPreviewCard anoAtual={periodo.ano} mesAtual={periodo.mes} />
       </div>
     </div>
   );

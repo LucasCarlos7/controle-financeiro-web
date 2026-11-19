@@ -4,12 +4,12 @@ import { SelectRowField } from '../../../../shared/components/ui/SelectRowField'
 import { useTransactionForm } from './useTransactionForm';
 
 const PERIODICIDADES: PickerOption[] = [
-  { value: 'Mensal', label: 'Mensal', description: 'Sem data fim, até 24 lançamentos', icon: 'repeat' },
+  { value: 'Mensal', label: 'Mensal', description: 'Repete mensalmente', icon: 'repeat' },
   { value: 'Fixa', label: 'Intervalo personalizado', description: 'A cada N meses', icon: 'calendar' },
   { value: 'Parcelada', label: 'Parcelada', description: 'Divide em N parcelas, ex.: "Notebook (3/10)"', icon: 'card' },
 ];
 
-/** "Repetir ou parcelar": periodicidade, intervalo e fim (data ou número de parcelas). */
+/** "Repetir ou parcelar": periodicidade, intervalo e número de parcelas. */
 export function RecurrenceSection() {
   const {
     control,
@@ -19,6 +19,7 @@ export function RecurrenceSection() {
   } = useTransactionForm();
   const recorrente = watch('recorrente');
   const tipoRecorrencia = watch('tipoRecorrencia');
+  const isParcelada = tipoRecorrencia === 'Parcelada';
 
   return (
     <FormSection label="Repetição">
@@ -52,30 +53,19 @@ export function RecurrenceSection() {
             error={errors.intervaloMeses?.message}
             {...register('intervaloMeses')}
           />
-          {tipoRecorrencia === 'Parcelada' ? (
-            <TextRow
-              id="totalParcelas"
-              icon="text"
-              label="Parcelas"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={120}
-              placeholder="Ex.: 10"
-              required
-              error={errors.totalParcelas?.message}
-              {...register('totalParcelas')}
-            />
-          ) : (
-            <TextRow
-              id="dataFim"
-              icon="calendar"
-              label="Repetir até"
-              type="date"
-              error={errors.dataFim?.message}
-              {...register('dataFim')}
-            />
-          )}
+          <TextRow
+            id="totalParcelas"
+            icon="text"
+            label="Parcelas"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={120}
+            placeholder={isParcelada ? 'Ex.: 10' : 'Ex.: 24 (padrão)'}
+            required={isParcelada}
+            error={errors.totalParcelas?.message}
+            {...register('totalParcelas')}
+          />
         </>
       )}
     </FormSection>

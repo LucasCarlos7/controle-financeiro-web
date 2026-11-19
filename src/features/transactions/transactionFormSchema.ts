@@ -19,7 +19,6 @@ const baseSchema = z.object({
   tipoRecorrencia: z.enum(['Mensal', 'Fixa', 'Parcelada']).optional(),
   intervaloMeses: z.coerce.number().int().min(1).max(12).optional(),
   totalParcelas: z.coerce.number().int().min(1).max(120).optional(),
-  dataFim: z.string().optional(),
 });
 
 type BaseFormOutput = z.output<typeof baseSchema>;

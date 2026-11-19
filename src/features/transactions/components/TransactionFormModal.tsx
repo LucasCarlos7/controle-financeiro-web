@@ -77,7 +77,6 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
       tipoRecorrencia: 'Mensal',
       intervaloMeses: 1,
       totalParcelas: undefined,
-      dataFim: '',
     },
   });
   const {
@@ -108,7 +107,6 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
         tipoRecorrencia: 'Mensal',
         intervaloMeses: 1,
         totalParcelas: undefined,
-        dataFim: '',
       });
     }
   }, [open, transaction, reset]);
@@ -185,8 +183,7 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
           tagIds,
           tipoRecorrencia: data.tipoRecorrencia,
           intervaloMeses: data.intervaloMeses || null,
-          totalParcelas: data.tipoRecorrencia === 'Parcelada' ? data.totalParcelas || null : null,
-          dataFim: data.tipoRecorrencia === 'Parcelada' ? null : data.dataFim || null,
+          totalParcelas: data.totalParcelas || null,
         },
         { onSuccess: closeWith('Lançamentos recorrentes criados') },
       );

@@ -11,7 +11,7 @@ import { ProgressBar } from '../../../shared/components/ui/ProgressBar';
 import { TextLink } from '../../../shared/components/ui/TextLink';
 import { EntityIcon, Icon } from '../../../shared/components/icons';
 import { TIPO_CONTA_ICONS, TIPO_CONTA_LABELS } from '../../accounts/pickerOptions';
-import { formatDate, formatPercent } from '../../../shared/utils/format';
+import { formatDate, formatPercent, toApiDate } from '../../../shared/utils/format';
 import { CardEmpty, CardStatus, DashboardCard } from './DashboardCard';
 
 export function AccountsCard() {
@@ -99,8 +99,10 @@ export function CreditCardsCard() {
   );
 }
 
-export function LatestTransactionsCard() {
-  const { data, isLoading, error, refetch } = useTransactionsQuery({});
+export function LatestTransactionsCard({ ano, mes }: { ano: number; mes: number }) {
+  const dataInicio = toApiDate(new Date(ano, mes - 1, 1));
+  const dataFim = toApiDate(new Date(ano, mes, 0));
+  const { data, isLoading, error, refetch } = useTransactionsQuery({ dataInicio, dataFim });
   const describe = useTransactionLookups();
   const ultimas = (data ?? []).slice(0, 6);
 

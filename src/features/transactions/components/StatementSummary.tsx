@@ -4,6 +4,7 @@ import { useMonthlyEvolutionQuery } from '../../dashboard/hooks/useDashboardQuer
 import type { EvolucaoMensal } from '../../dashboard/types';
 import { Amount } from '../../../shared/components/ui/Amount';
 import { Card } from '../../../shared/components/ui/Card';
+import { Icon } from '../../../shared/components/icons';
 import { useChartTheme } from '../../../shared/hooks/useChartTheme';
 import { usePrefersReducedMotion } from '../../../shared/hooks/usePrefersReducedMotion';
 import { formatMonthYear, MESES, toApiDate } from '../../../shared/utils/format';
@@ -70,22 +71,22 @@ export function StatementSummary({ transacoes }: { transacoes: Transacao[] }) {
       <h2 className="sr-only">Resumo do extrato</h2>
 
       {/* Totais realizados */}
-      <dl className="grid grid-cols-3 gap-2 text-center">
-        <div>
-          <dt className="text-sm font-medium text-text-muted">Recebido</dt>
-          <dd className="mt-0.5 text-lg font-semibold sm:text-xl">
+      <dl className="grid grid-cols-3 divide-x divide-border text-center">
+        <div className="px-2 pb-1">
+          <dt className="text-xs font-semibold text-income">Recebido</dt>
+          <dd className="mt-1 text-lg font-semibold sm:text-xl">
             <Amount value={receitasRecebidas} kind="income" showSign={false} split />
           </dd>
         </div>
-        <div>
-          <dt className="text-sm font-medium text-text-muted">Pago</dt>
-          <dd className="mt-0.5 text-lg font-semibold sm:text-xl">
+        <div className="px-2 pb-1">
+          <dt className="text-xs font-semibold text-expense">Pago</dt>
+          <dd className="mt-1 text-lg font-semibold sm:text-xl">
             <Amount value={despesasPagas} kind="expense" showSign={false} split />
           </dd>
         </div>
-        <div>
-          <dt className="text-sm font-medium text-text-muted">Realizado</dt>
-          <dd className="mt-0.5 text-lg font-semibold text-text sm:text-xl">
+        <div className="px-2 pb-1">
+          <dt className="text-xs font-semibold text-text-muted">Realizado</dt>
+          <dd className="mt-1 text-lg font-semibold text-text sm:text-xl">
             <Amount value={saldoRealizado} kind="balance" split />
           </dd>
         </div>
@@ -93,28 +94,31 @@ export function StatementSummary({ transacoes }: { transacoes: Transacao[] }) {
 
       {/* Previsão com pendentes */}
       {temPendentes && (
-        <div className="mt-3 rounded-control border border-warning/30 bg-warning-soft/20 px-3 py-2">
-          <div className="mb-1.5 flex items-center justify-between">
-            <p className="text-xs font-semibold text-warning">Previsão (incluindo pendentes)</p>
-            <p className="text-sm font-bold text-text">
-              <Amount value={saldoPrevisto} kind="balance" />
-            </p>
+        <div className="mt-3 rounded-control border border-border bg-surface-sunken px-3 py-2.5">
+          <div className="mb-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Icon name="clock" className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+              <span className="text-xs font-medium text-text-muted">Previsão do mês</span>
+            </div>
+            <Amount value={saldoPrevisto} kind="balance" className="text-sm font-bold" />
           </div>
-          <div className="grid grid-cols-2 gap-2 text-center">
+          <div className={`grid gap-2 ${receitasPendentes > 0 && despesasPendentes > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
             {receitasPendentes > 0 && (
-              <div>
-                <p className="text-xs text-text-muted">A receber</p>
-                <p className="text-sm font-semibold">
-                  <Amount value={receitasPendentes} kind="income" showSign={false} />
+              <div className="rounded border border-income/20 bg-success-soft/20 px-2.5 py-2">
+                <p className="mb-1 flex items-center gap-1 text-[11px] font-medium text-text-muted">
+                  <Icon name="arrow-down-left" className="h-3 w-3 shrink-0 text-income" />
+                  A receber
                 </p>
+                <Amount value={receitasPendentes} kind="income" showSign={false} className="text-sm font-semibold" />
               </div>
             )}
             {despesasPendentes > 0 && (
-              <div>
-                <p className="text-xs text-text-muted">A pagar</p>
-                <p className="text-sm font-semibold">
-                  <Amount value={despesasPendentes} kind="expense" showSign={false} />
+              <div className="rounded border border-expense/20 bg-danger-soft/20 px-2.5 py-2">
+                <p className="mb-1 flex items-center gap-1 text-[11px] font-medium text-text-muted">
+                  <Icon name="arrow-up-right" className="h-3 w-3 shrink-0 text-expense" />
+                  A pagar
                 </p>
+                <Amount value={despesasPendentes} kind="expense" showSign={false} className="text-sm font-semibold" />
               </div>
             )}
           </div>
