@@ -37,8 +37,9 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
   const dataTransacao = new Date(y, m - 1, d);
   const isVencido = transacao.status === 'Pendente' && dataTransacao < startOfToday;
   const isPendente = transacao.status === 'Pendente' && !isVencido;
+  const isPago = transacao.status === 'Pago' || transacao.status === 'Recebido';
 
-  const hasBadges = transacao.status === 'Pendente' || Boolean(transacao.recorrenciaId) || display.tags.length > 0;
+  const hasBadges = transacao.status === 'Pendente' || isPago || Boolean(transacao.recorrenciaId) || display.tags.length > 0;
 
   return (
     <>
@@ -46,6 +47,7 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
         'relative flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-card last:rounded-b-card hover:bg-surface-hover',
         isVencido && 'border-l-2 border-danger bg-danger-soft/30',
         isPendente && 'border-l-2 border-warning bg-warning-soft/20',
+        isPago && 'border-l-2 border-success bg-success-soft/20',
       )}>
         <TransactionIcon transacao={transacao} cor={display.categoria?.cor} icone={display.categoria?.icone} />
 
@@ -73,6 +75,7 @@ export function TransactionListItem({ transacao, display, onEdit }: TransactionL
             <div className="mt-1.5 flex flex-wrap gap-1">
               {isVencido && <Badge tone="danger">Vencido</Badge>}
               {isPendente && <Badge tone="warning">Pendente</Badge>}
+              {isPago && <Badge tone="success">{transacao.status === 'Recebido' ? 'Recebido' : 'Pago'}</Badge>}
               {transacao.recorrenciaId && (
                 <Badge tone="neutral">
                   <Icon name="repeat" className="h-3 w-3" />
