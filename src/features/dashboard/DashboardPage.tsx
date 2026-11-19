@@ -24,7 +24,7 @@ import {
 } from './hooks/useDashboardQueries';
 
 function getEvolutionRange(ano: number, mes: number) {
-  const end = new Date(ano, mes - 1, 1);
+  const end = new Date(ano, mes, 0); // último dia do mês selecionado
   const start = new Date(ano, mes - 1 - 5, 1);
   return { dataInicio: toApiDate(start), dataFim: toApiDate(end) };
 }

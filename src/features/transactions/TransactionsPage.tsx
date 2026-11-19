@@ -13,11 +13,13 @@ import { ErrorState } from '../../shared/components/ui/ErrorState';
 import { EmptyState } from '../../shared/components/ui/EmptyState';
 import { PageHeader } from '../../shared/components/ui/PageHeader';
 import { Button } from '../../shared/components/ui/Button';
+import { MonthYearPicker } from '../../shared/components/ui/MonthYearPicker';
 import { Skeleton } from '../../shared/components/ui/Skeleton';
 import { TextLink } from '../../shared/components/ui/TextLink';
 import { Icon } from '../../shared/components/icons';
-import { formatMonthYear } from '../../shared/utils/format';
-import type { Transacao, TransactionFilters } from './types';
+import { MonthStrip } from '../../shared/components/ui/MonthStrip';
+import { formatMonthYear, toApiDate } from '../../shared/utils/format';
+import type { Transacao, TransactionFilters, TransactionSortOrder } from './types';
 
 /** Painel lateral: gastos do mês corrente por categoria e os limites de orçamento. */
 function MonthPanel() {
@@ -41,10 +43,20 @@ function MonthPanel() {
 }
 
 export function TransactionsPage() {
-  const [filters, setFilters] = useState<TransactionFilters>({});
-  const { data, isLoading, isError, error, refetch } = useTransactionsQuery(filters);
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState({ ano: now.getFullYear(), mes: now.getMonth() + 1 });
+  const [filters, setFilters] = useState<Omit<TransactionFilters, 'dataInicio' | 'dataFim'>>({});
+  const [ordenacao, setOrdenacao] = useState<TransactionSortOrder>('data_desc');
+
+  const dataInicio = toApiDate(new Date(selectedMonth.ano, selectedMonth.mes - 1, 1));
+  const dataFim = toApiDate(new Date(selectedMonth.ano, selectedMonth.mes, 0));
+  const queryFilters: TransactionFilters = { ...filters, dataInicio, dataFim };
+
+  const { data, isLoading, isError, error, refetch } = useTransactionsQuery(queryFilters);
   const [editing, setEditing] = useState<Transacao | undefined>();
-  const hasFilters = Object.values(filters).some(Boolean);
+  const hasFilters = Object.entries(filters).some(
+    ([k, v]) => !['dataInicio', 'dataFim'].includes(k) && Boolean(v),
+  );
   const openNew = useNewTransaction();
 
   return (
@@ -52,16 +64,37 @@ export function TransactionsPage() {
       <PageHeader
         title="Extrato"
         action={
-          <Button type="button" onClick={openNew}>
-            <Icon name="plus" className="h-4 w-4" />
-            Novo lançamento
-          </Button>
+          <div className="flex items-center gap-2">
+            <MonthYearPicker
+              ano={selectedMonth.ano}
+              mes={selectedMonth.mes}
+              onChange={(ano, mes) => setSelectedMonth({ ano, mes })}
+            />
+            <Button type="button" onClick={openNew}>
+              <Icon name="plus" className="h-4 w-4" />
+              Novo lançamento
+            </Button>
+          </div>
         }
       />
 
+      {/* Faixa de navegação rápida por mês */}
+      <div className="mb-4">
+        <MonthStrip
+          ano={selectedMonth.ano}
+          mes={selectedMonth.mes}
+          onChange={(ano, mes) => setSelectedMonth({ ano, mes })}
+        />
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0">
-          <TransactionFiltersBar filters={filters} onChange={setFilters} />
+          <TransactionFiltersBar
+            filters={filters}
+            onChange={setFilters}
+            ordenacao={ordenacao}
+            onOrdenacaoChange={setOrdenacao}
+          />
 
           {isLoading && <TransactionListSkeleton />}
           {isError && <ErrorState error={error} onRetry={() => refetch()} />}
@@ -93,7 +126,7 @@ export function TransactionsPage() {
           {!isLoading && !isError && data && data.length > 0 && (
             <>
               <StatementSummary transacoes={data} />
-              <TransactionList transacoes={data} onEdit={setEditing} />
+              <TransactionList transacoes={data} onEdit={setEditing} ordenacao={ordenacao} />
             </>
           )}
         </div>

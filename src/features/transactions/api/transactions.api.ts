@@ -35,6 +35,10 @@ export function markTransactionPaid(id: string): Promise<void> {
   return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-pago`, { method: 'POST' });
 }
 
+export function markTransactionReceived(id: string): Promise<void> {
+  return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-recebido`, { method: 'POST' });
+}
+
 export function markTransactionPending(id: string): Promise<void> {
   return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-pendente`, { method: 'POST' });
 }

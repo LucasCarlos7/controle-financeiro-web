@@ -1,9 +1,20 @@
 export interface ResumoMensal {
   ano: number;
   mes: number;
-  receitas: number;
-  despesas: number;
-  saldo: number;
+  // Realizados
+  receitasRecebidas: number;
+  despesasPagas: number;
+  saldoRealizado: number;
+  // Pendentes
+  receitasPendentes: number;
+  despesasPendentes: number;
+  // Previsão (realizados + pendentes)
+  receitasPrevistas: number;
+  despesasPrevistas: number;
+  saldoPrevisto: number;
+  // Contagens
+  qtdReceitasPendentes: number;
+  qtdDespesasPendentes: number;
 }
 
 export interface GastoPorCategoria {
@@ -15,7 +26,14 @@ export interface GastoPorCategoria {
 export interface EvolucaoMensal {
   ano: number;
   mes: number;
-  receitas: number;
-  despesas: number;
-  saldoAcumulado: number;
+  // Realizados
+  receitasRealizadas: number;
+  despesasRealizadas: number;
+  saldoRealizado: number;
+  saldoAcumuladoRealizado: number;
+  // Previsão
+  receitasPrevistas: number;
+  despesasPrevistas: number;
+  saldoPrevisto: number;
+  saldoAcumuladoPrevisto: number;
 }

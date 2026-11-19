@@ -6,6 +6,7 @@ import {
   deleteTransaction,
   markTransactionPaid,
   markTransactionPending,
+  markTransactionReceived,
   updateTransaction,
 } from '../api/transactions.api';
 import type { CreateTransacaoRecorrenteRequest, CreateTransacaoRequest, UpdateTransacaoRequest } from '../types';
@@ -66,6 +67,14 @@ export function useMarkPaidMutation() {
   const invalidate = useInvalidateAfterMutation();
   return useMutation({
     mutationFn: (id: string) => markTransactionPaid(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useMarkReceivedMutation() {
+  const invalidate = useInvalidateAfterMutation();
+  return useMutation({
+    mutationFn: (id: string) => markTransactionReceived(id),
     onSuccess: invalidate,
   });
 }

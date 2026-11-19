@@ -9,9 +9,9 @@ import type { EvolucaoMensal } from '../types';
 const MESES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 const SERIES = [
-  { key: 'receitas', label: 'Receitas', color: 'income', shape: 'bar' },
-  { key: 'despesas', label: 'Despesas', color: 'expense', shape: 'bar' },
-  { key: 'saldoAcumulado', label: 'Saldo acumulado', color: 'balance', shape: 'line' },
+  { key: 'receitasRealizadas', label: 'Receitas', color: 'income', shape: 'bar' },
+  { key: 'despesasRealizadas', label: 'Despesas', color: 'expense', shape: 'bar' },
+  { key: 'saldoAcumuladoRealizado', label: 'Saldo acumulado', color: 'balance', shape: 'line' },
 ] as const;
 
 type ChartPoint = EvolucaoMensal & { label: string };
@@ -106,7 +106,7 @@ export function MonthlyEvolutionChart({ data }: { data: EvolucaoMensal[] }) {
           <Tooltip content={<EvolutionTooltip />} cursor={{ fill: colors.cursor }} />
           <Bar
             yAxisId="valores"
-            dataKey="receitas"
+            dataKey="receitasRealizadas"
             name="Receitas"
             fill={colors.income}
             radius={[3, 3, 0, 0]}
@@ -115,7 +115,7 @@ export function MonthlyEvolutionChart({ data }: { data: EvolucaoMensal[] }) {
           />
           <Bar
             yAxisId="valores"
-            dataKey="despesas"
+            dataKey="despesasRealizadas"
             name="Despesas"
             fill={colors.expense}
             radius={[3, 3, 0, 0]}
@@ -125,7 +125,7 @@ export function MonthlyEvolutionChart({ data }: { data: EvolucaoMensal[] }) {
           <Line
             yAxisId="saldo"
             type="monotone"
-            dataKey="saldoAcumulado"
+            dataKey="saldoAcumuladoRealizado"
             name="Saldo acumulado"
             stroke={colors.balance}
             strokeWidth={2.25}

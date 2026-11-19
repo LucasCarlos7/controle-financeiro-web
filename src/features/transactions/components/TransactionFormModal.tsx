@@ -102,7 +102,7 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
         contaDestinoId: transaction?.contaDestinoId ?? '',
         categoriaId: transaction?.categoriaId ?? '',
         subcategoriaId: transaction?.subcategoriaId ?? '',
-        status: transaction?.status ?? 'Pago',
+        status: transaction?.status === 'Recebido' ? 'Pago' : transaction?.status === 'Cancelado' ? 'Pendente' : (transaction?.status ?? 'Pago'),
         tagIds: transaction?.tagIds ?? [],
         recorrente: false,
         tipoRecorrencia: 'Mensal',
@@ -218,6 +218,7 @@ export function TransactionFormModal({ open, onClose, transaction }: Transaction
     <EditScopeModal
       open={scopeModalOpen}
       pending={updateMutation.isPending}
+      transactionDate={transaction?.data}
       onConfirm={handleScopeConfirm}
       onClose={() => setScopeModalOpen(false)}
     />
