@@ -18,8 +18,6 @@ export function RecurrenceSection() {
     formState: { errors },
   } = useTransactionForm();
   const recorrente = watch('recorrente');
-  const tipoRecorrencia = watch('tipoRecorrencia');
-  const isParcelada = tipoRecorrencia === 'Parcelada';
 
   return (
     <FormSection label="Repetição">
@@ -61,8 +59,8 @@ export function RecurrenceSection() {
             inputMode="numeric"
             min={1}
             max={120}
-            placeholder={isParcelada ? 'Ex.: 10' : 'Ex.: 24 (padrão)'}
-            required={isParcelada}
+            // Vazio: a API gera 100 lançamentos.
+            placeholder="Opcional (padrão: 100)"
             error={errors.totalParcelas?.message}
             {...register('totalParcelas')}
           />

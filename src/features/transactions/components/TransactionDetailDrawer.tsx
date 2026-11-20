@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useConfirm, useToast } from '../../../shared/hooks/useFeedback';
 import { ApiError } from '../../../shared/types/api';
 import { Amount } from '../../../shared/components/ui/Amount';
@@ -18,6 +19,11 @@ import {
 import { isRealizado } from '../types';
 import type { Transacao } from '../types';
 import type { TransactionDisplay } from '../hooks/useTransactionLookups';
+
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 const TIPO_VISUAL: Record<Transacao['tipo'], { kind: 'income' | 'expense' | 'transfer' }> = {
   Receita: { kind: 'income' },
@@ -41,6 +47,9 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
   const deleteRecurrenceMutation = useDeleteRecurrenceMutation();
   const confirm = useConfirm();
   const toast = useToast();
+
+  const [showPaymentDate, setShowPaymentDate] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(todayISO);
 
   const visual = TIPO_VISUAL[transacao.tipo];
   const isEfetivada = isRealizado(transacao.status);
@@ -77,14 +86,21 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
         onSuccess: () => { toast('Lançamento marcado como pendente'); onClose(); },
         onError: errorCallback,
       });
-    } else if (isReceita) {
-      markReceivedMutation.mutate(transacao.id, {
-        onSuccess: () => { toast('Receita marcada como recebida'); onClose(); },
+    } else {
+      setPaymentDate(todayISO());
+      setShowPaymentDate(true);
+    }
+  }
+
+  function handleConfirmPayment() {
+    if (isReceita) {
+      markReceivedMutation.mutate({ id: transacao.id, dataPagamento: paymentDate }, {
+        onSuccess: () => { toast('Receita marcada como recebida'); setShowPaymentDate(false); onClose(); },
         onError: errorCallback,
       });
     } else {
-      markPaidMutation.mutate(transacao.id, {
-        onSuccess: () => { toast('Lançamento marcado como pago'); onClose(); },
+      markPaidMutation.mutate({ id: transacao.id, dataPagamento: paymentDate }, {
+        onSuccess: () => { toast('Lançamento marcado como pago'); setShowPaymentDate(false); onClose(); },
         onError: errorCallback,
       });
     }
@@ -155,8 +171,11 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
 
         {/* details */}
         <div className="rounded-xl bg-surface-sunken">
-          <DetailRow icon="calendar" label="Data" value={formatDate(transacao.data)} />
-          <DetailRow icon="tag" label="Categoria" value={categoriaTexto} />
+          <DetailRow icon="calendar" label="Data de vencimento" value={formatDate(transacao.data)} />
+          {isEfetivada && transacao.dataPagamento && (
+            <DetailRow icon="check" label={isReceita ? 'Data de recebimento' : 'Data de pagamento'} value={formatDate(transacao.dataPagamento)} />
+          )}
+          <DetailRow icon="tag" label="Categoria" value={categoriaTexto} last={!display.origem} />
           {display.origem && (
             <DetailRow
               icon={usaCartao ? 'card' : 'bank'}
@@ -176,7 +195,7 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
         {/* ajustes */}
         <div>
           <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-text-muted">Ajustes</p>
-          <div className="rounded-xl bg-surface-sunken">
+          <div className="rounded-xl bg-surface-sunken overflow-hidden">
             <label className="flex cursor-pointer items-center justify-between px-4 py-3.5">
               <div className="flex items-center gap-3">
                 <div className={cn(
@@ -190,7 +209,7 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
               <input
                 type="checkbox"
                 role="switch"
-                checked={isEfetivada}
+                checked={isEfetivada || showPaymentDate}
                 disabled={busy}
                 onChange={handleToggleEfetivada}
                 className="h-6 w-11 cursor-pointer appearance-none rounded-full bg-border transition-colors duration-200 checked:bg-primary
@@ -198,6 +217,39 @@ export function TransactionDetailDrawer({ transacao, display, open, onClose, onE
                   relative after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-200 after:content-[''] checked:after:translate-x-5"
               />
             </label>
+
+            {showPaymentDate && !isEfetivada && (
+              <div className="border-t border-border px-4 py-3 flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-text-muted">
+                    {isReceita ? 'Data de recebimento' : 'Data de pagamento'}
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentDate(false)}
+                    className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-raised"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!paymentDate || busy}
+                    onClick={handleConfirmPayment}
+                    className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {busy ? 'Salvando…' : 'Confirmar'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -72,10 +72,6 @@ export function createTransactionFormSchema(isEditing: boolean) {
     if (!data.tipoRecorrencia) {
       ctx.addIssue({ code: 'custom', path: ['tipoRecorrencia'], message: 'Selecione a periodicidade' });
     }
-
-    if (data.tipoRecorrencia === 'Parcelada' && !data.totalParcelas) {
-      ctx.addIssue({ code: 'custom', path: ['totalParcelas'], message: 'Informe o total de parcelas' });
-    }
   });
 }
 

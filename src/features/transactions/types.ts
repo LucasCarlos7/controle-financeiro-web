@@ -26,6 +26,7 @@ export interface Transacao {
   tipo: TipoTransacao;
   valor: number;
   data: string;
+  dataPagamento?: string | null;
   descricao: string;
   contaId?: string | null;
   cartaoCreditoId?: string | null;

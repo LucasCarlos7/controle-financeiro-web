@@ -66,7 +66,8 @@ export function useDeleteTransactionMutation() {
 export function useMarkPaidMutation() {
   const invalidate = useInvalidateAfterMutation();
   return useMutation({
-    mutationFn: (id: string) => markTransactionPaid(id),
+    mutationFn: ({ id, dataPagamento }: { id: string; dataPagamento?: string }) =>
+      markTransactionPaid(id, dataPagamento),
     onSuccess: invalidate,
   });
 }
@@ -74,7 +75,8 @@ export function useMarkPaidMutation() {
 export function useMarkReceivedMutation() {
   const invalidate = useInvalidateAfterMutation();
   return useMutation({
-    mutationFn: (id: string) => markTransactionReceived(id),
+    mutationFn: ({ id, dataPagamento }: { id: string; dataPagamento?: string }) =>
+      markTransactionReceived(id, dataPagamento),
     onSuccess: invalidate,
   });
 }

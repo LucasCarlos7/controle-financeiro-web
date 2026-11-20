@@ -31,12 +31,18 @@ export function deleteTransaction(id: string): Promise<void> {
   return apiRequest<void>(`/api/v1/Transacoes/${id}`, { method: 'DELETE' });
 }
 
-export function markTransactionPaid(id: string): Promise<void> {
-  return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-pago`, { method: 'POST' });
+export function markTransactionPaid(id: string, dataPagamento?: string): Promise<void> {
+  return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-pago`, {
+    method: 'POST',
+    body: dataPagamento ? { dataPagamento } : undefined,
+  });
 }
 
-export function markTransactionReceived(id: string): Promise<void> {
-  return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-recebido`, { method: 'POST' });
+export function markTransactionReceived(id: string, dataPagamento?: string): Promise<void> {
+  return apiRequest<void>(`/api/v1/Transacoes/${id}/marcar-recebido`, {
+    method: 'POST',
+    body: dataPagamento ? { dataPagamento } : undefined,
+  });
 }
 
 export function markTransactionPending(id: string): Promise<void> {
